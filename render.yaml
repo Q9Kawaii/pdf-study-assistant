@@ -1,0 +1,15 @@
+# Tells Render how to build and run the backend.
+services:
+  - type: web
+    name: pdf-study-assistant
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.5
+      # sync: false means Render asks for the value, so it never lives in git.
+      - key: GEMINI_API_KEY
+        sync: false
