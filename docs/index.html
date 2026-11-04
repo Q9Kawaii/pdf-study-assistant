@@ -4,111 +4,327 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>PDF Study Assistant</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0f1117;
-      --card: #1a1d27;
-      --border: #3a4050;
-      --text: #f2f4f8;
-      --muted: #c2c8d4;
-      --accent: #7dd3fc;
-      --accent-text: #08202e;
-      --error: #fca5a5;
-      --success: #86efac;
+      --bg: #3b1a9c;
+      --ink: #1b1033;
+      --paper: #fff8e7;
+      --white: #ffffff;
+      --yellow: #ffd23f;
+      --pink: #ff7ab8;
+      --mint: #57e6ad;
+      --sky: #7fdcf7;
+      --error: #a80f3b;
+      --success: #0b6b45;
+      --muted: #4b3f63;
+      --title-font: "Bagel Fat One", "Comic Sans MS", system-ui, sans-serif;
+      --body-font: "Fredoka", "Trebuchet MS", system-ui, sans-serif;
+      --bounce: cubic-bezier(0.34, 1.7, 0.5, 1);
     }
 
     * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
 
     body {
       margin: 0;
-      padding: 32px 16px;
+      min-height: 100vh;
+      padding: 28px 16px 56px;
+      overflow-x: hidden;
       background: var(--bg);
-      color: var(--text);
-      font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      color: var(--ink);
+      font: 500 17px/1.55 var(--body-font);
     }
 
-    main { max-width: 680px; margin: 0 auto; }
-    h1 { margin: 0; font-size: 1.9rem; line-height: 1.2; }
-    h2 { margin: 0 0 12px; font-size: 1.1rem; }
-    .intro { margin: 8px 0 24px; color: var(--muted); }
+    main { position: relative; z-index: 1; max-width: 660px; margin: 0 auto; }
+    h1, h2 { margin: 0; font-family: var(--title-font); font-weight: 400; line-height: 1.1; }
+    h2 { margin-bottom: 12px; font-size: 1.45rem; }
 
-    section {
-      margin-bottom: 16px;
-      padding: 20px;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
+    /* Floating doodles behind everything. */
+    .doodles { position: fixed; inset: 0; overflow: hidden; pointer-events: none; }
+    .doodles span {
+      position: absolute;
+      font-size: 2.2rem;
+      opacity: 0.5;
+      animation: drift 9s ease-in-out infinite alternate;
     }
+    .doodles span:nth-child(1) { top: 8%; left: 6%; }
+    .doodles span:nth-child(2) { top: 20%; right: 8%; animation-delay: -2s; }
+    .doodles span:nth-child(3) { top: 52%; left: 4%; animation-delay: -4s; }
+    .doodles span:nth-child(4) { top: 68%; right: 6%; animation-delay: -6s; }
+    .doodles span:nth-child(5) { bottom: 6%; left: 18%; animation-delay: -3s; }
+    .doodles span:nth-child(6) { bottom: 10%; right: 22%; animation-delay: -7s; }
 
-    label { display: block; margin-bottom: 6px; color: var(--muted); }
+    /* The mascot: a small PDF page with googly eyes. */
+    .mascot {
+      display: block;
+      overflow: visible;
+      animation: bob 2.4s ease-in-out infinite;
+      transform-origin: 50% 100%;
+    }
+    .mascot .eyes {
+      animation: blink 4.5s infinite;
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+    .mascot .pupil { transition: transform 0.08s linear; }
+    .mascot .arm {
+      animation: wave 1.2s ease-in-out infinite alternate;
+      transform-box: fill-box;
+      transform-origin: 0% 100%;
+    }
+    .mascot .mouth-oops { display: none; }
+    .thinking .mascot { animation: think 0.7s ease-in-out infinite; }
+    .happy .mascot { animation: jump 0.55s var(--bounce) 3; }
+    .oops .mascot { animation: shake 0.45s ease-in-out 2; }
+    .oops .mascot .mouth-smile { display: none; }
+    .oops .mascot .mouth-oops { display: block; }
 
-    input[type="file"], textarea {
+    /* Sticker-style cards. */
+    .card {
+      margin-bottom: 22px;
+      padding: 22px;
+      background: var(--paper);
+      border: 4px solid var(--ink);
+      border-radius: 22px;
+      box-shadow: 8px 8px 0 var(--ink);
+      animation: pop-in 0.55s var(--bounce) both;
+    }
+    .card.tilt-left { rotate: -0.7deg; }
+    .card.tilt-right { rotate: 0.7deg; }
+    .card.shake { animation: shake 0.4s ease-in-out; }
+
+    /* Home page. */
+    .hero { text-align: center; color: var(--white); margin-bottom: 20px; }
+    .hero .mascot { width: 136px; margin: 0 auto 10px; }
+    .hero h1 {
+      font-size: clamp(2.5rem, 11vw, 4rem);
+      color: var(--yellow);
+      text-shadow: 4px 4px 0 var(--ink);
+      rotate: -2deg;
+    }
+    .hero p { margin: 12px 0 0; font-size: 1.15rem; }
+
+    label, legend { display: block; margin-bottom: 6px; padding: 0; font-weight: 600; }
+    fieldset { margin: 0 0 16px; padding: 0; border: 0; }
+    .field { margin-bottom: 16px; }
+
+    input[type="text"], textarea {
       width: 100%;
-      padding: 10px;
-      background: var(--bg);
-      color: var(--text);
-      border: 1px solid var(--border);
-      border-radius: 8px;
+      padding: 12px 14px;
+      background: var(--white);
+      color: var(--ink);
+      border: 3px solid var(--ink);
+      border-radius: 14px;
       font: inherit;
+      transition: transform 0.15s var(--bounce), box-shadow 0.15s;
+    }
+    input[type="text"]:focus, textarea:focus {
+      outline: none;
+      transform: translate(-2px, -2px);
+      box-shadow: 4px 4px 0 var(--pink);
+    }
+    textarea { min-height: 100px; resize: vertical; }
+
+    /* Hidden from view, but still usable by keyboard and screen readers. */
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
     }
 
-    textarea { min-height: 96px; resize: vertical; }
-    .buttons { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+    .moods { display: flex; flex-wrap: wrap; gap: 10px; }
+    .moods label { margin: 0; cursor: pointer; }
+    .moods span {
+      display: inline-block;
+      padding: 8px 14px;
+      background: var(--white);
+      border: 3px solid var(--ink);
+      border-radius: 999px;
+      transition: transform 0.15s var(--bounce), background 0.15s;
+    }
+    .moods label:hover span { transform: rotate(-3deg) scale(1.05); }
+    .moods input:checked + span { background: var(--mint); transform: rotate(-2deg) scale(1.05); }
+    .moods input:focus-visible + span { outline: 3px solid var(--ink); outline-offset: 3px; }
 
-    button {
-      padding: 10px 18px;
-      background: var(--accent);
-      color: var(--accent-text);
-      border: 2px solid var(--accent);
-      border-radius: 8px;
-      font: inherit;
-      font-weight: 600;
+    .buttons { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 14px; }
+
+    button, .file-button {
+      display: inline-block;
+      margin: 0;
+      padding: 11px 20px;
+      background: var(--yellow);
+      color: var(--ink);
+      border: 3px solid var(--ink);
+      border-radius: 14px;
+      box-shadow: 4px 4px 0 var(--ink);
+      font: 700 1.05rem var(--body-font);
       cursor: pointer;
+      transition: transform 0.12s var(--bounce), box-shadow 0.12s;
     }
+    button:hover:not(:disabled), .file-button:hover { transform: translate(-2px, -2px) rotate(-1.5deg); box-shadow: 6px 6px 0 var(--ink); }
+    button:active:not(:disabled), .file-button:active { transform: translate(4px, 4px) scale(0.97); box-shadow: 0 0 0 var(--ink); }
+    button:disabled { opacity: 0.55; cursor: not-allowed; }
+    button.pink { background: var(--pink); }
+    button.sky, .file-button { background: var(--sky); }
+    button.small { padding: 6px 12px; font-size: 0.92rem; box-shadow: 3px 3px 0 var(--ink); }
+    #start-button { width: 100%; font-size: 1.25rem; }
+    :focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+    #file:focus-visible + .file-button { outline: 3px solid var(--ink); outline-offset: 3px; }
 
-    button.secondary { background: transparent; color: var(--accent); }
-    button:disabled { opacity: 0.5; cursor: not-allowed; }
-    :focus-visible { outline: 3px solid var(--text); outline-offset: 2px; }
-
-    .status { min-height: 1.6em; margin: 12px 0 0; color: var(--muted); }
+    #file-name { margin-left: 4px; overflow-wrap: anywhere; }
+    .hint { margin: 0 0 10px; color: var(--muted); }
+    .status { min-height: 1.55em; margin: 12px 0 0; font-weight: 600; color: var(--muted); }
     .status.error { color: var(--error); }
     .status.success { color: var(--success); }
 
+    /* Study page. */
+    .top-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; color: var(--white); }
+    .top-bar .mascot-slot { flex: none; }
+    .top-bar .mascot { width: 76px; }
+    .top-bar div:not(.mascot-slot) { flex: 1; min-width: 0; }
+    .top-bar h1 {
+      font-size: clamp(1.5rem, 6vw, 2.1rem);
+      color: var(--yellow);
+      text-shadow: 3px 3px 0 var(--ink);
+      overflow-wrap: anywhere;
+    }
+    .top-bar p { margin: 4px 0 0; overflow-wrap: anywhere; }
+
     /* pre-wrap keeps the line breaks in Gemini's answer. */
     #answer { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
-    [hidden] { display: none; }
+
+    .leaving { animation: fly-out 0.35s ease-in both; }
+
+    .confetti {
+      position: fixed;
+      top: -16px;
+      z-index: 5;
+      width: 11px;
+      height: 16px;
+      pointer-events: none;
+      animation: fall var(--fall-time) linear forwards;
+    }
+
+    @keyframes drift { to { transform: translate(18px, -26px) rotate(22deg); } }
+    @keyframes bob { 50% { transform: translateY(-7px) rotate(2deg); } }
+    @keyframes blink { 0%, 94%, 100% { transform: scaleY(1); } 97% { transform: scaleY(0.08); } }
+    @keyframes wave { to { transform: rotate(-24deg); } }
+    @keyframes think { 25% { transform: rotate(-9deg) scale(1.04); } 75% { transform: rotate(9deg) scale(0.97); } }
+    @keyframes jump { 45% { transform: translateY(-30px) scale(1.08, 0.94); } }
+    @keyframes shake { 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
+    @keyframes pop-in { from { opacity: 0; transform: scale(0.7) rotate(-4deg); } }
+    @keyframes fly-out { to { opacity: 0; transform: translateY(-50px) rotate(4deg) scale(0.85); } }
+    @keyframes fall { to { transform: translateY(110vh) rotate(720deg); } }
+
+    /* Respect visitors who turn animations off on their device. */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
   </style>
 </head>
 <body>
+  <div class="doodles" aria-hidden="true">
+    <span>📚</span><span>✏️</span><span>🧠</span><span>⭐</span><span>📎</span><span>🍕</span>
+  </div>
+
+  <!-- The mascot is drawn once here, then copied into each page. -->
+  <template id="mascot-template">
+    <svg class="mascot" viewBox="0 0 160 190" aria-hidden="true">
+      <path d="M58 160v20h-14M102 160v20h14" fill="none" stroke="#1b1033" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M26 92 8 74" fill="none" stroke="#1b1033" stroke-width="7" stroke-linecap="round"/>
+      <path class="arm" d="M134 92l18-20" fill="none" stroke="#1b1033" stroke-width="7" stroke-linecap="round"/>
+      <path d="M26 14h78l30 30v116H26z" fill="#fff8e7" stroke="#1b1033" stroke-width="6" stroke-linejoin="round"/>
+      <path d="M104 14v30h30z" fill="#ff7ab8" stroke="#1b1033" stroke-width="6" stroke-linejoin="round"/>
+      <g class="eyes">
+        <circle class="eye" cx="60" cy="72" r="19" fill="#fff" stroke="#1b1033" stroke-width="5"/>
+        <circle class="eye" cx="102" cy="76" r="15" fill="#fff" stroke="#1b1033" stroke-width="5"/>
+        <circle class="pupil" cx="60" cy="72" r="8" fill="#1b1033"/>
+        <circle class="pupil" cx="102" cy="76" r="7" fill="#1b1033"/>
+      </g>
+      <path class="mouth-smile" d="M56 110c10 22 40 22 50 0z" fill="#ff7ab8" stroke="#1b1033" stroke-width="5" stroke-linejoin="round"/>
+      <circle class="mouth-oops" cx="80" cy="118" r="10" fill="#1b1033"/>
+      <path d="M44 142h72" stroke="#1b1033" stroke-width="5" stroke-linecap="round" opacity="0.3"/>
+    </svg>
+  </template>
+
   <main>
-    <h1>PDF Study Assistant</h1>
-    <p class="intro">Upload your notes, then ask questions or get a quiz.</p>
+    <!-- Home page -->
+    <div id="home-view">
+      <header class="hero">
+        <div class="mascot-slot"></div>
+        <h1>PDF Study Assistant</h1>
+        <p>Hi, I'm Pagey. I eat notes and burp out answers.</p>
+      </header>
 
-    <section>
-      <h2>1. Upload your notes</h2>
-      <label for="file">PDF, up to 2 MB and 20 pages</label>
-      <input id="file" type="file" accept="application/pdf,.pdf">
-      <div class="buttons">
-        <button id="upload-button" type="button">Upload PDF</button>
-      </div>
-      <p id="upload-status" class="status" role="status"></p>
-    </section>
+      <form id="profile-form" class="card tilt-left" novalidate>
+        <h2>First, who are you?</h2>
+        <div class="field">
+          <label for="name">Your name</label>
+          <input id="name" type="text" maxlength="40" autocomplete="given-name" required>
+        </div>
+        <div class="field">
+          <label for="subject">What are you studying? (optional)</label>
+          <input id="subject" type="text" maxlength="60" autocomplete="off">
+        </div>
+        <fieldset>
+          <legend>Current mood</legend>
+          <div class="moods">
+            <label><input class="visually-hidden" type="radio" name="mood" value="ready" checked><span>🤓 Ready to learn</span></label>
+            <label><input class="visually-hidden" type="radio" name="mood" value="panic"><span>😱 Exam is tomorrow</span></label>
+            <label><input class="visually-hidden" type="radio" name="mood" value="vibes"><span>😎 Just vibing</span></label>
+          </div>
+        </fieldset>
+        <button id="start-button" type="submit" class="pink">Let's gooo!</button>
+        <p id="form-status" class="status error" role="alert"></p>
+        <p class="hint">Your details stay in this browser. They're never sent to the server.</p>
+      </form>
+    </div>
 
-    <section id="ask-section" hidden>
-      <h2>2. Study</h2>
-      <label for="question">Your question, up to 500 characters</label>
-      <textarea id="question" maxlength="500"></textarea>
-      <div class="buttons">
-        <button id="ask-button" type="button">Ask</button>
-        <button id="quiz-button" type="button" class="secondary">Make a quiz</button>
-      </div>
-      <p id="ask-status" class="status" role="status"></p>
-    </section>
+    <!-- Main study page -->
+    <div id="study-view" hidden>
+      <header class="top-bar">
+        <div class="mascot-slot"></div>
+        <div>
+          <h1 id="greeting"></h1>
+          <p id="mood-line"></p>
+        </div>
+        <button id="change-button" type="button" class="small">Not you?</button>
+      </header>
 
-    <section id="answer-section" hidden>
-      <h2>Answer</h2>
-      <p id="answer"></p>
-    </section>
+      <section class="card tilt-right">
+        <h2 id="upload-heading">Feed me your notes</h2>
+        <p class="hint">PDF only, up to 2 MB and 20 pages. I have a small tummy.</p>
+        <input id="file" class="visually-hidden" type="file" accept="application/pdf,.pdf">
+        <label for="file" class="file-button">Choose a PDF</label>
+        <span id="file-name"></span>
+        <div class="buttons">
+          <button id="upload-button" type="button">Gobble it up!</button>
+        </div>
+        <p id="upload-status" class="status" role="status"></p>
+      </section>
+
+      <section id="ask-section" class="card tilt-left" hidden>
+        <h2>Ask me anything</h2>
+        <label for="question">Your question, up to 500 characters</label>
+        <textarea id="question" maxlength="500"></textarea>
+        <div class="buttons">
+          <button id="ask-button" type="button" class="pink">Ask Pagey</button>
+          <button id="quiz-button" type="button" class="sky">Quiz me!</button>
+        </div>
+        <p id="ask-status" class="status" role="status"></p>
+      </section>
+
+      <section id="answer-section" class="card tilt-right" hidden>
+        <h2>Pagey says</h2>
+        <p id="answer"></p>
+      </section>
+    </div>
   </main>
 
   <script>
@@ -117,8 +333,34 @@
 
     const MAX_PDF_BYTES = 2 * 1024 * 1024;
     const QUIZ_REQUEST = "Make a quiz from these notes.";
+    const PROFILE_KEY = "study-profile";
+    const CONFETTI_COLORS = ["#ffd23f", "#ff7ab8", "#57e6ad", "#7fdcf7", "#ffffff"];
+    const MOOD_LINES = {
+      ready: "Love the energy. Let's learn something.",
+      panic: "Deep breaths. We can still save this.",
+      vibes: "No pressure. We're just hanging out with some notes.",
+    };
+    const THINKING_LINES = [
+      "Chewing on your notes...",
+      "Asking my two brain cells...",
+      "Flipping pages very fast...",
+      "Almost there, probably...",
+    ];
 
+    const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const homeView = document.getElementById("home-view");
+    const studyView = document.getElementById("study-view");
+    const profileForm = document.getElementById("profile-form");
+    const nameInput = document.getElementById("name");
+    const subjectInput = document.getElementById("subject");
+    const formStatus = document.getElementById("form-status");
+    const greeting = document.getElementById("greeting");
+    const moodLine = document.getElementById("mood-line");
+    const uploadHeading = document.getElementById("upload-heading");
+    const changeButton = document.getElementById("change-button");
     const fileInput = document.getElementById("file");
+    const fileName = document.getElementById("file-name");
     const uploadButton = document.getElementById("upload-button");
     const uploadStatus = document.getElementById("upload-status");
     const askSection = document.getElementById("ask-section");
@@ -130,6 +372,120 @@
     const answerText = document.getElementById("answer");
 
     let docId = null; // set after a successful upload
+    let moodTimer = null;
+
+    // Put a copy of the mascot on each page.
+    const mascotTemplate = document.getElementById("mascot-template");
+    document.querySelectorAll(".mascot-slot").forEach((slot) => {
+      slot.append(mascotTemplate.content.cloneNode(true));
+    });
+
+    // Changes Pagey's animation: "thinking", "happy", "oops", or "" for normal.
+    function setMood(mood) {
+      clearTimeout(moodTimer);
+      document.body.classList.remove("thinking", "happy", "oops");
+      if (mood) document.body.classList.add(mood);
+      if (mood === "happy" || mood === "oops") {
+        moodTimer = setTimeout(() => setMood(""), 1800);
+      }
+    }
+
+    // Moves each pupil a little towards the mouse.
+    function followPointer(event) {
+      document.querySelectorAll(".mascot").forEach((mascot) => {
+        const eyes = mascot.querySelectorAll(".eye");
+        mascot.querySelectorAll(".pupil").forEach((pupil, index) => {
+          const box = eyes[index].getBoundingClientRect();
+          if (!box.width) return; // this mascot's page is hidden
+          const x = event.clientX - (box.left + box.width / 2);
+          const y = event.clientY - (box.top + box.height / 2);
+          const angle = Math.atan2(y, x);
+          const reach = Math.min(8, Math.hypot(x, y) / 20);
+          pupil.style.transform = `translate(${Math.cos(angle) * reach}px, ${Math.sin(angle) * reach}px)`;
+        });
+      });
+    }
+
+    function throwConfetti() {
+      if (reducedMotion) return;
+      for (let i = 0; i < 45; i++) {
+        const piece = document.createElement("div");
+        piece.className = "confetti";
+        piece.style.left = `${Math.random() * 100}vw`;
+        piece.style.background = CONFETTI_COLORS[i % CONFETTI_COLORS.length];
+        piece.style.animationDelay = `${Math.random() * 0.4}s`;
+        piece.style.setProperty("--fall-time", `${1.4 + Math.random() * 1.2}s`);
+        piece.addEventListener("animationend", () => piece.remove());
+        document.body.append(piece);
+      }
+    }
+
+    // Restarts a card's animation, for example when a new answer arrives.
+    function replayAnimation(element, className) {
+      element.classList.remove(className);
+      void element.offsetWidth; // forces the browser to notice the removal
+      element.classList.add(className);
+    }
+
+    // Browser storage can be blocked, so the page must work without it.
+    function loadProfile() {
+      try {
+        return JSON.parse(localStorage.getItem(PROFILE_KEY));
+      } catch {
+        return null;
+      }
+    }
+
+    function saveProfile(profile) {
+      try {
+        localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+      } catch {
+        // Nothing to do: the visitor just retypes their name next time.
+      }
+    }
+
+    function fillForm(profile) {
+      if (!profile) return;
+      nameInput.value = profile.name || "";
+      subjectInput.value = profile.subject || "";
+      const moodInput = profileForm.querySelector(`input[value="${profile.mood}"]`);
+      if (moodInput) moodInput.checked = true;
+    }
+
+    // Plays the exit animation on one page, then shows the other.
+    function switchView(from, to) {
+      from.classList.add("leaving");
+      setTimeout(() => {
+        from.classList.remove("leaving");
+        from.hidden = true;
+        to.hidden = false;
+        scrollTo(0, 0);
+      }, reducedMotion ? 0 : 340);
+    }
+
+    function startStudying(event) {
+      event.preventDefault();
+      const name = nameInput.value.trim();
+      if (!name) {
+        formStatus.textContent = "Pagey needs a name to call you!";
+        replayAnimation(profileForm, "shake");
+        setMood("oops");
+        nameInput.focus();
+        return;
+      }
+
+      const subject = subjectInput.value.trim();
+      const mood = new FormData(profileForm).get("mood");
+      saveProfile({ name, subject, mood });
+
+      // textContent shows names as plain text, so any HTML in them can't run.
+      formStatus.textContent = "";
+      greeting.textContent = `Hey ${name}!`;
+      moodLine.textContent = MOOD_LINES[mood];
+      uploadHeading.textContent = subject ? `Feed me your ${subject} notes` : "Feed me your notes";
+      setMood("happy");
+      switchView(homeView, studyView);
+    }
 
     function showStatus(element, message, type = "") {
       element.textContent = message;
@@ -153,15 +509,20 @@
       return data;
     }
 
+    function showError(element, message) {
+      showStatus(element, message, "error");
+      setMood("oops");
+    }
+
     async function uploadPdf() {
       const file = fileInput.files[0];
       if (!file) {
-        showStatus(uploadStatus, "Please choose a PDF first.", "error");
+        showError(uploadStatus, "Please choose a PDF first.");
         return;
       }
       // Checked again on the server, because browser code can be bypassed.
       if (file.size > MAX_PDF_BYTES) {
-        showStatus(uploadStatus, "That PDF is too big. The limit is 2 MB.", "error");
+        showError(uploadStatus, "That PDF is too big. The limit is 2 MB.");
         return;
       }
 
@@ -169,14 +530,17 @@
       formData.append("file", file);
 
       uploadButton.disabled = true;
-      showStatus(uploadStatus, "Uploading. This can take up to a minute if the server is asleep.");
+      setMood("thinking");
+      showStatus(uploadStatus, "Nom nom. This can take up to a minute if the server is asleep.");
       try {
         const data = await callApi("/upload", { method: "POST", body: formData });
         docId = data.doc_id;
         askSection.hidden = false;
-        showStatus(uploadStatus, `Ready: ${file.name}`, "success");
+        showStatus(uploadStatus, `Delicious! ${file.name} is ready.`, "success");
+        setMood("happy");
+        throwConfetti();
       } catch (error) {
-        showStatus(uploadStatus, error.message, "error");
+        showError(uploadStatus, error.message);
       } finally {
         uploadButton.disabled = false;
       }
@@ -184,34 +548,56 @@
 
     async function askQuestion(question) {
       if (!question.trim()) {
-        showStatus(askStatus, "Please type a question.", "error");
+        showError(askStatus, "Please type a question.");
         return;
       }
 
       askButton.disabled = true;
       quizButton.disabled = true;
-      showStatus(askStatus, "Thinking...");
+      setMood("thinking");
+
+      // Shows a new silly line every couple of seconds while we wait.
+      let lineNumber = 0;
+      showStatus(askStatus, THINKING_LINES[0]);
+      const thinkingTimer = setInterval(() => {
+        lineNumber = (lineNumber + 1) % THINKING_LINES.length;
+        showStatus(askStatus, THINKING_LINES[lineNumber]);
+      }, 2000);
+
       try {
         const data = await callApi("/ask", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ doc_id: docId, question }),
         });
+        clearInterval(thinkingTimer);
         // textContent shows the answer as plain text, so any HTML in it can't run.
         answerText.textContent = data.answer;
         answerSection.hidden = false;
+        replayAnimation(answerSection, "card");
         showStatus(askStatus, "");
+        setMood("happy");
+        answerSection.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "nearest" });
       } catch (error) {
-        showStatus(askStatus, error.message, "error");
+        clearInterval(thinkingTimer);
+        showError(askStatus, error.message);
       } finally {
         askButton.disabled = false;
         quizButton.disabled = false;
       }
     }
 
+    profileForm.addEventListener("submit", startStudying);
+    changeButton.addEventListener("click", () => switchView(studyView, homeView));
+    fileInput.addEventListener("change", () => {
+      fileName.textContent = fileInput.files[0] ? fileInput.files[0].name : "";
+    });
     uploadButton.addEventListener("click", uploadPdf);
     askButton.addEventListener("click", () => askQuestion(questionInput.value));
     quizButton.addEventListener("click", () => askQuestion(QUIZ_REQUEST));
+    if (!reducedMotion) addEventListener("pointermove", followPointer);
+
+    fillForm(loadProfile());
   </script>
 </body>
 </html>
