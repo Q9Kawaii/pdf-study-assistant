@@ -70,8 +70,8 @@ def rate_limit_handler(request: Request, error: RateLimitExceeded):
     )
 
 
-# CORS: browsers block a page on one site (Netlify) from calling an API on
-# another (Render) unless the API allows it. "*" allows any site.
+# CORS: browsers block a page on one site (GitHub Pages) from calling an API
+# on another (Render) unless the API allows it. "*" allows any site.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -217,7 +217,8 @@ def ask(request: Request, body: AskRequest):
             ),
         )
     except errors.APIError as error:
-        print(f"Gemini error {error.code}: {error.message}")  # visible in logs
+        # flush=True sends this to Render's logs right away, not when a buffer fills.
+        print(f"Gemini error {error.code}: {error.message}", flush=True)
         if error.code == 429:
             raise HTTPException(
                 status_code=429,
