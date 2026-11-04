@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PDF Study Assistant</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --card: #1a1d27;
+      --border: #3a4050;
+      --text: #f2f4f8;
+      --muted: #c2c8d4;
+      --accent: #7dd3fc;
+      --accent-text: #08202e;
+      --error: #fca5a5;
+      --success: #86efac;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 32px 16px;
+      background: var(--bg);
+      color: var(--text);
+      font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+
+    main { max-width: 680px; margin: 0 auto; }
+    h1 { margin: 0; font-size: 1.9rem; line-height: 1.2; }
+    h2 { margin: 0 0 12px; font-size: 1.1rem; }
+    .intro { margin: 8px 0 24px; color: var(--muted); }
+
+    section {
+      margin-bottom: 16px;
+      padding: 20px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+
+    label { display: block; margin-bottom: 6px; color: var(--muted); }
+
+    input[type="file"], textarea {
+      width: 100%;
+      padding: 10px;
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font: inherit;
+    }
+
+    textarea { min-height: 96px; resize: vertical; }
+    .buttons { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+
+    button {
+      padding: 10px 18px;
+      background: var(--accent);
+      color: var(--accent-text);
+      border: 2px solid var(--accent);
+      border-radius: 8px;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    button.secondary { background: transparent; color: var(--accent); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    :focus-visible { outline: 3px solid var(--text); outline-offset: 2px; }
+
+    .status { min-height: 1.6em; margin: 12px 0 0; color: var(--muted); }
+    .status.error { color: var(--error); }
+    .status.success { color: var(--success); }
+
+    /* pre-wrap keeps the line breaks in Gemini's answer. */
+    #answer { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+    [hidden] { display: none; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>PDF Study Assistant</h1>
+    <p class="intro">Upload your notes, then ask questions or get a quiz.</p>
+
+    <section>
+      <h2>1. Upload your notes</h2>
+      <label for="file">PDF, up to 2 MB and 20 pages</label>
+      <input id="file" type="file" accept="application/pdf,.pdf">
+      <div class="buttons">
+        <button id="upload-button" type="button">Upload PDF</button>
+      </div>
+      <p id="upload-status" class="status" role="status"></p>
+    </section>
+
+    <section id="ask-section" hidden>
+      <h2>2. Study</h2>
+      <label for="question">Your question, up to 500 characters</label>
+      <textarea id="question" maxlength="500"></textarea>
+      <div class="buttons">
+        <button id="ask-button" type="button">Ask</button>
+        <button id="quiz-button" type="button" class="secondary">Make a quiz</button>
+      </div>
+      <p id="ask-status" class="status" role="status"></p>
+    </section>
+
+    <section id="answer-section" hidden>
+      <h2>Answer</h2>
+      <p id="answer"></p>
+    </section>
+  </main>
+
+  <script>
+    // The backend's address. Change this to your Render URL when you deploy.
+    const API_URL = "http://127.0.0.1:8000";
+
+    const MAX_PDF_BYTES = 2 * 1024 * 1024;
+    const QUIZ_REQUEST = "Make a quiz from these notes.";
+
+    const fileInput = document.getElementById("file");
+    const uploadButton = document.getElementById("upload-button");
+    const uploadStatus = document.getElementById("upload-status");
+    const askSection = document.getElementById("ask-section");
+    const questionInput = document.getElementById("question");
+    const askButton = document.getElementById("ask-button");
+    const quizButton = document.getElementById("quiz-button");
+    const askStatus = document.getElementById("ask-status");
+    const answerSection = document.getElementById("answer-section");
+    const answerText = document.getElementById("answer");
+
+    let docId = null; // set after a successful upload
+
+    function showStatus(element, message, type = "") {
+      element.textContent = message;
+      element.className = `status ${type}`;
+    }
+
+    // Sends a request and turns every kind of failure into a readable message.
+    async function callApi(path, options) {
+      let response;
+      try {
+        response = await fetch(API_URL + path, options);
+      } catch {
+        throw new Error("Couldn't reach the server. Please try again in a minute.");
+      }
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const hasMessage = typeof data.detail === "string";
+        throw new Error(hasMessage ? data.detail : "Something went wrong. Please try again.");
+      }
+      return data;
+    }
+
+    async function uploadPdf() {
+      const file = fileInput.files[0];
+      if (!file) {
+        showStatus(uploadStatus, "Please choose a PDF first.", "error");
+        return;
+      }
+      // Checked again on the server, because browser code can be bypassed.
+      if (file.size > MAX_PDF_BYTES) {
+        showStatus(uploadStatus, "That PDF is too big. The limit is 2 MB.", "error");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      uploadButton.disabled = true;
+      showStatus(uploadStatus, "Uploading. This can take up to a minute if the server is asleep.");
+      try {
+        const data = await callApi("/upload", { method: "POST", body: formData });
+        docId = data.doc_id;
+        askSection.hidden = false;
+        showStatus(uploadStatus, `Ready: ${file.name}`, "success");
+      } catch (error) {
+        showStatus(uploadStatus, error.message, "error");
+      } finally {
+        uploadButton.disabled = false;
+      }
+    }
+
+    async function askQuestion(question) {
+      if (!question.trim()) {
+        showStatus(askStatus, "Please type a question.", "error");
+        return;
+      }
+
+      askButton.disabled = true;
+      quizButton.disabled = true;
+      showStatus(askStatus, "Thinking...");
+      try {
+        const data = await callApi("/ask", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ doc_id: docId, question }),
+        });
+        // textContent shows the answer as plain text, so any HTML in it can't run.
+        answerText.textContent = data.answer;
+        answerSection.hidden = false;
+        showStatus(askStatus, "");
+      } catch (error) {
+        showStatus(askStatus, error.message, "error");
+      } finally {
+        askButton.disabled = false;
+        quizButton.disabled = false;
+      }
+    }
+
+    uploadButton.addEventListener("click", uploadPdf);
+    askButton.addEventListener("click", () => askQuestion(questionInput.value));
+    quizButton.addEventListener("click", () => askQuestion(QUIZ_REQUEST));
+  </script>
+</body>
+</html>
