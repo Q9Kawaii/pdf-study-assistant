@@ -1,3 +1,0 @@
-# Tells Netlify to publish only the frontend folder, with no build step.
-[build]
-  publish = "frontend"
