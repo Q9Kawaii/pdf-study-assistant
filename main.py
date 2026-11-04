@@ -19,7 +19,7 @@ from slowapi.util import get_remote_address
 # Reads .env on your laptop. On Render, the real environment variable is used.
 load_dotenv()
 
-MODEL = "gemini-2.5-flash-lite"
+MODEL = "gemini-3.5-flash-lite"
 MAX_ANSWER_TOKENS = 1024  # caps answer length, which also protects the quota
 
 # Limits that protect the free quota and the server's small amount of RAM.
