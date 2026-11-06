@@ -11,8 +11,19 @@ EMBEDDING_DIMENSIONS = 768  # smaller than the 3072 default, and still accurate
 EMBED_BATCH_SIZE = 90
 EMBED_RETRIES = 3  # how many times to wait when the minute's limit is used up
 EMBED_RETRY_WAIT_SECONDS = 30
+QUESTION_RETRY_WAIT_SECONDS = 20  # 3 waits just outlast the one-minute limit
 MAX_ANSWER_TOKENS = 1024  # caps answer length, which also protects the quota
 GEMINI_TIMEOUT_MS = 30000  # give up on any single Gemini call after 30 seconds
+
+# OCR, for pages that are pictures of text.
+MIN_PAGE_TEXT_CHARS = 20  # less than this on a page with images means a scan
+# Gemini's free tier allows 15 chat requests a minute, shared by all users. So
+# an upload never makes more than 5, however many pages it has.
+OCR_MAX_CALLS = 5
+OCR_TOKENS_PER_PAGE = 2048  # plenty for one page of text
+OCR_TIMEOUT_MS = 60000  # a call reading several pages needs longer than usual
+OCR_RETRY_WAIT_SECONDS = 15
+OCR_PASSES = 2  # one read, plus one more try for any page that came back empty
 
 # RAG settings.
 CHUNK_SIZE = 500  # characters per chunk
