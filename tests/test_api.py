@@ -3,6 +3,7 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
 
+import httpx
 from fastapi.testclient import TestClient
 
 import rate_limits
@@ -138,6 +139,15 @@ class ApiTests(unittest.TestCase):
         for _ in range(10):
             self.assertEqual(self.grade().status_code, 200)
         self.assertEqual(self.grade().status_code, 429)
+
+    def test_gemini_timeout_gets_a_friendly_error(self):
+        def stuck(**kwargs):
+            raise httpx.ReadTimeout("too slow")
+
+        self.models.embed_content = stuck
+        response = self.ask()
+        self.assertEqual(response.status_code, 502)
+        self.assertIn("Couldn't reach", response.json()["detail"])
 
     def test_cors_allows_only_known_sites(self):
         def allowed(origin):
