@@ -3,6 +3,7 @@ uvicorn==0.54.0           # server that runs the FastAPI app
 python-multipart==0.0.33  # lets FastAPI receive file uploads
 pypdf==6.21.4             # reads text out of PDFs
 google-genai==2.34.0      # official Gemini API client
+httpx==0.28.1            # the HTTP client Gemini uses; we catch its network errors
 numpy==2.5.4              # vector math for cosine similarity
 slowapi==0.1.10           # per-IP rate limiting
 python-dotenv==1.2.4      # loads .env during local development
