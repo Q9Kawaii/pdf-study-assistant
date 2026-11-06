@@ -170,7 +170,7 @@ a { color: var(--cyan); }
 .footer a { font-weight: 700; }
 
 @media (max-width: 560px) {
-  .nav nav a:first-child { display: none; }
+  .nav nav a.hide-small { display: none; }
 }
 
 /* Respect people who ask their device for less motion. */
