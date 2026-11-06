@@ -35,6 +35,7 @@
         <li><a href="#embeddings">Embeddings and vectors</a></li>
         <li><a href="#chunking">Chunking</a></li>
         <li><a href="#cosine">Cosine similarity</a></li>
+        <li><a href="#ocr">OCR: reading scanned pages</a></li>
         <li><a href="#steps">How it works, step by step</a></li>
         <li><a href="#paste">Why not paste the whole PDF?</a></li>
         <li><a href="#limits">Limits and trade-offs</a></li>
@@ -55,6 +56,7 @@
         <p>PDF Study Assistant lets you upload a PDF and ask questions about it.</p>
         <p>The answers come only from your PDF. Each answer shows where it came from, with page numbers.</p>
         <p>If the answer isn't in the PDF, the app says "Not found in your document". It doesn't guess.</p>
+        <p>It works with scanned PDFs too, not just PDFs with real text.</p>
         <p>The app also has a RAG X-ray panel. It shows what happened behind the scenes for your question, using real data.</p>
         <div class="example">
           <strong>Real-world example</strong>
@@ -147,6 +149,26 @@
         <div class="example">
           <strong>Real-world example</strong>
           <p>Two friends point at something across a room. If their arms point the same way, they mean the same thing. One friend may have longer arms, but that doesn't matter. Only the direction does.</p>
+        </div>
+      </section>
+
+      <section id="ocr" class="reveal">
+        <h2>OCR: reading scanned pages</h2>
+        <p>Some PDFs hold real text. You can select it with your mouse. Other PDFs are only pictures of pages, like a scan or a photo of your notes.</p>
+        <p>To a computer, a picture of a word is just coloured dots. There's no text to pull out.</p>
+        <p><strong>OCR</strong> means Optical Character Recognition. It looks at a picture and writes down the text it sees.</p>
+        <p>This app checks each page first. If a page has real text, we use it right away. If a page has pictures but almost no text, Gemini reads it for us. Normal PDFs skip this step, so they stay fast.</p>
+        <p>Reading pictures is slower than reading text, so we do two things to save time:</p>
+        <ul>
+          <li><strong>We read at the same time.</strong> Up to 5 AI calls run together, so the wait is about as long as the slowest call.</li>
+          <li><strong>We share out the pages.</strong> The free plan allows only 15 AI requests a minute for everyone. So a long PDF is split into 5 groups, and each call reads a few pages. That leaves room for people's questions.</li>
+        </ul>
+        <p>Each call marks where every page starts, so citations can still show the right page number.</p>
+        <p>The AI can skip a page by mistake. If a page comes back empty, we try once more. If it's still empty, the app tells you which page it couldn't read.</p>
+        <p>OCR text is treated like any other PDF text: as data, never as instructions. A scanned page can hold a prompt injection too.</p>
+        <div class="example">
+          <strong>Real-world example</strong>
+          <p>A friend hands you a photo of the class notes. You can't search a photo, so you type the notes out first. If there are 20 pages, you split them among 5 friends so it's done quickly. Each friend writes the page number on what they type.</p>
         </div>
       </section>
 
