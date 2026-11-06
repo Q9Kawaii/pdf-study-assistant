@@ -12,6 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/xray.css">
 </head>
 <body>
   <div class="bg-gradient" aria-hidden="true"></div>
@@ -35,8 +36,8 @@
         <a class="button primary" href="#assistant">Upload a PDF</a>
         <a class="button ghost" href="documentation.html">Learn how it works</a>
       </div>
-      <ol class="flow reveal" aria-label="The pipeline: question, vector, scores, top 3, answer">
-        <li>Question</li><li>Vector</li><li>Scores</li><li>Top 3</li><li>Answer</li>
+      <ol class="flow reveal" aria-label="The pipeline: ask, vector, compare, top 3, answer">
+        <li><svg class="icon" aria-hidden="true"><use href="#i-ask"/></svg>Ask</li><li><svg class="icon" aria-hidden="true"><use href="#i-vector"/></svg>Vector</li><li><svg class="icon" aria-hidden="true"><use href="#i-compare"/></svg>Compare</li><li><svg class="icon" aria-hidden="true"><use href="#i-top"/></svg>Top 3</li><li><svg class="icon" aria-hidden="true"><use href="#i-answer"/></svg>Answer</li>
       </ol>
     </section>
 
@@ -72,6 +73,7 @@
               <strong id="dropzone-title">Drop a PDF here, or tap to choose</strong>
               <span id="dropzone-hint">Up to 2 MB and 20 pages. Scanned PDFs work too.</span>
             </label>
+            <div class="page-map" id="page-map"></div>
             <p class="status" id="upload-status" role="status"></p>
           </div>
 
@@ -96,31 +98,52 @@
             <h3>RAG X-ray</h3>
             <button class="button small ghost" id="xray-replay" type="button" hidden>Replay</button>
           </div>
-          <p class="xray-empty" id="xray-empty">Ask a question and this panel will replay what really happened, step by step.</p>
-          <ol class="xray-steps" id="xray-steps" hidden>
-            <li class="xray-step" data-step="question">
+          <div class="rail" id="xray-rail">
+            <ol>
+              <li><span class="rail-node"><svg class="icon" aria-hidden="true"><use href="#i-ask"/></svg></span>Ask</li>
+              <li><span class="rail-node"><svg class="icon" aria-hidden="true"><use href="#i-vector"/></svg></span>Vector</li>
+              <li><span class="rail-node"><svg class="icon" aria-hidden="true"><use href="#i-compare"/></svg></span>Compare</li>
+              <li><span class="rail-node"><svg class="icon" aria-hidden="true"><use href="#i-top"/></svg></span>Top 3</li>
+              <li><span class="rail-node"><svg class="icon" aria-hidden="true"><use href="#i-answer"/></svg></span>Answer</li>
+            </ol>
+            <span class="rail-packet" aria-hidden="true"></span>
+          </div>
+          <p class="xray-empty" id="xray-empty">Ask a question to watch it run.</p>
+          <div id="xray-stages" hidden>
+            <section class="xray-stage" hidden>
               <h4>Your question</h4>
               <p class="xray-question" id="xray-question"></p>
-            </li>
-            <li class="xray-step" data-step="vector">
-              <h4>Question becomes a vector</h4>
+            </section>
+            <section class="xray-stage" hidden>
+              <h4>Question as numbers</h4>
               <div class="vector-bars" id="xray-vector"></div>
-              <p class="xray-note" id="xray-vector-note"></p>
-            </li>
-            <li class="xray-step" data-step="scores">
-              <h4>Similarity scores</h4>
-              <div class="score-list" id="xray-scores"></div>
-              <p class="xray-note" id="xray-scores-note"></p>
-            </li>
-            <li class="xray-step" data-step="top">
+              <p class="vector-size"><strong id="xray-dimensions"></strong> numbers, first <span id="xray-preview-size"></span> shown</p>
+            </section>
+            <section class="xray-stage" hidden>
+              <h4>Closest chunks</h4>
+              <div id="xray-radar"></div>
+              <p class="legend">
+                <span class="top"><i></i>Top 3</span>
+                <span><i></i>Other chunks</span>
+                <span>Closer = more similar</span>
+              </p>
+              <p class="heat-title">Where the matches are, by page</p>
+              <div class="heat" id="xray-heat" aria-hidden="true"></div>
+            </section>
+            <section class="xray-stage" hidden>
               <h4>Top 3 chunks</h4>
               <div class="top-list" id="xray-top"></div>
-            </li>
-            <li class="xray-step" data-step="answer">
+            </section>
+            <section class="xray-stage" hidden>
               <h4>Answer</h4>
-              <p class="xray-answer" id="xray-answer"></p>
-            </li>
-          </ol>
+              <svg class="funnel" viewBox="0 0 240 44" aria-hidden="true">
+                <path pathLength="1" d="M30 2C30 28 120 16 120 42"/>
+                <path pathLength="1" d="M120 2V42"/>
+                <path pathLength="1" d="M210 2C210 28 120 16 120 42"/>
+              </svg>
+              <div class="answer-box" id="xray-answer-box"></div>
+            </section>
+          </div>
         </aside>
       </div>
     </section>
@@ -137,6 +160,9 @@
   <script src="js/icons.js"></script>
   <script src="js/loader.js"></script>
   <script src="js/api.js"></script>
+  <script src="js/pagemap.js"></script>
+  <script src="js/xray-radar.js"></script>
+  <script src="js/xray-cards.js"></script>
   <script src="js/xray.js"></script>
   <script src="js/app.js"></script>
 </body>
