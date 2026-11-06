@@ -130,6 +130,13 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(body["pages"], 2)
         self.assertEqual(body["ocr_pages"], 2)
         self.assertEqual(body["unread_pages"], [])
+        self.assertEqual(
+            body["page_map"],
+            [
+                {"page": 1, "chunks": 1, "ocr": True},
+                {"page": 2, "chunks": 1, "ocr": True},
+            ],
+        )
         stored = sessions[body["session_id"]]["chunks"]
         self.assertEqual([chunk["page"] for chunk in stored], [1, 2])
 

@@ -1,4 +1,6 @@
 """PDF Study Assistant API. Run locally with: uvicorn main:app --reload"""
+from collections import Counter
+
 import httpx
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -177,12 +179,22 @@ def upload(request: Request, file: UploadFile = File(...)):
     # Last check before spending quota, so rejected uploads aren't counted.
     spend_daily_quota(len(chunks))  # Gemini counts each chunk as one request
     vectors = embed_chunks(client, chunks)
+    chunks_per_page = Counter(chunk["page"] for chunk in chunks)
     return {
         "session_id": create_session(chunks, vectors),
         "pages": len(pages),
         "chunks": len(chunks),
         "ocr_pages": len(image_pages) - len(unread_pages),  # all of these have text
         "unread_pages": unread_pages,
+        # Real numbers for the page thumbnails shown after an upload.
+        "page_map": [
+            {
+                "page": page["page"],
+                "chunks": chunks_per_page[page["page"]],
+                "ocr": page["page"] in image_pages,
+            }
+            for page in pages
+        ],
     }
 
 
