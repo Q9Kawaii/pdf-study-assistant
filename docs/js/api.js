@@ -1,5 +1,6 @@
 // Talks to the backend. Shared by the main page and the quiz.
 const REQUEST_TIMEOUT_MS = 90000;
+const UPLOAD_TIMEOUT_MS = 240000; // a long PDF may wait for the AI's per-minute limit
 const WAKE_TIMEOUT_MS = 90000; // Render's free server can take about a minute
 
 async function apiRequest(path, options = {}, timeoutMs = REQUEST_TIMEOUT_MS) {

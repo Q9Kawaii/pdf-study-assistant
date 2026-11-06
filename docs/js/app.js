@@ -86,7 +86,7 @@
       }
       const data = new FormData();
       data.append("file", file);
-      const result = await apiRequest("/upload", { method: "POST", body: data });
+      const result = await apiRequest("/upload", { method: "POST", body: data }, UPLOAD_TIMEOUT_MS);
       sessionId = result.session_id;
       dropzone.classList.add("ready");
       dropzoneTitle.textContent = file.name;
