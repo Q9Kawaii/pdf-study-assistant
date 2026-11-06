@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Project Structure | PDF Study Assistant</title>
+  <meta name="description" content="An interactive map of every file in the project: what it does, why it exists, and which pipeline step it belongs to.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23070a13'/%3E%3Cpath d='M9 24 23 8' stroke='%2352e8d4' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
+  <script>document.documentElement.classList.add("js");</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/structure.css">
+</head>
+<body>
+  <div class="bg-gradient" aria-hidden="true"></div>
+  <canvas id="particles" aria-hidden="true"></canvas>
+
+  <header class="nav">
+    <a class="brand" href="index.html">PDF<span>/</span>Study</a>
+    <nav aria-label="Main">
+      <a href="index.html#assistant">Try it</a>
+      <a href="documentation.html">Documentation</a>
+    </nav>
+  </header>
+
+  <main class="structure">
+    <header class="structure-hero">
+      <p class="eyebrow">Every file, explained</p>
+      <h1 data-words>Project structure</h1>
+      <p class="lead reveal">Open the folders, then pick a file to see what it does and where it fits in the pipeline.</p>
+      <ul class="legend-row reveal" id="legend" aria-label="Colour legend"></ul>
+    </header>
+
+    <div class="explorer reveal">
+      <section class="tree-card" aria-label="File tree">
+        <div id="tree"></div>
+      </section>
+      <aside class="detail" id="detail" aria-live="polite"></aside>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p>PDF Study Assistant. RAG from scratch with Python and numpy.</p>
+    <span class="footer-links">
+      <a href="documentation.html">Documentation</a>
+      <a href="structure.html" aria-current="page">Project structure</a>
+      <a href="index.html">Back to the app</a>
+    </span>
+  </footer>
+
+  <script src="js/config.js"></script>
+  <script src="js/background.js"></script>
+  <script src="js/motion.js"></script>
+  <script src="js/icons.js"></script>
+  <script src="js/structure-data.js"></script>
+  <script src="js/structure.js"></script>
+</body>
+</html>
