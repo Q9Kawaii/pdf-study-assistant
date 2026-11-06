@@ -84,6 +84,12 @@ class OcrPagesTests(unittest.TestCase):
         self.assertEqual(failed, [])
         sleep.assert_called_once()
 
+    def test_daily_limit_is_not_worth_waiting_for(self, sleep):
+        daily = errors.APIError(429, {"error": {"message": "Requests per day exceeded", "status": "LIMIT"}})
+        pages, failed = ocr_pages(FakeVision([daily, daily]), blank_pdf(1), [1])
+        self.assertEqual((pages, failed), ([], [1]))
+        sleep.assert_not_called()
+
     def test_a_failed_group_does_not_lose_the_others(self, sleep):
         client = FakeVision(["good"] + [quota_error()] * 4)
         pages, failed = ocr_pages(client, blank_pdf(2), [1, 2])

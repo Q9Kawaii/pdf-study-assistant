@@ -4,6 +4,7 @@ import time
 import numpy as np
 from google.genai import errors, types
 
+from ai_client import hit_daily_limit
 from config import (
     EMBED_BATCH_SIZE,
     EMBED_RETRIES,
@@ -35,8 +36,8 @@ def embed_patiently(client, texts: list[str], task_type: str, wait: int) -> np.n
         try:
             return embed_texts(client, texts, task_type)
         except errors.APIError as error:
-            if error.code != 429:
-                raise  # only "too many requests" is worth waiting for
+            if error.code != 429 or hit_daily_limit(error):
+                raise  # only a per-minute limit is worth waiting for
             time.sleep(wait)
     # Last try. If this fails too, the API's error handler tells the user.
     return embed_texts(client, texts, task_type)

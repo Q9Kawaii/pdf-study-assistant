@@ -11,15 +11,16 @@ from embeddings import embed_chunks, embed_question
 class FakeEmbedder:
     """Fails with Gemini's 429 a set number of times, then works."""
 
-    def __init__(self, failures):
+    def __init__(self, failures, message="Quota"):
         self.failures = failures
+        self.message = message
         self.batch_sizes = []
         self.models = self
 
     def embed_content(self, model, contents, config):
         if self.failures > 0:
             self.failures -= 1
-            raise errors.APIError(429, {"error": {"message": "Quota", "status": "LIMIT"}})
+            raise errors.APIError(429, {"error": {"message": self.message, "status": "LIMIT"}})
         self.batch_sizes.append(len(contents))
         embedding = SimpleNamespace(values=[1.0, 0.0])
         return SimpleNamespace(embeddings=[embedding for _ in contents])
@@ -45,6 +46,12 @@ class EmbedChunksTests(unittest.TestCase):
         client = FakeEmbedder(failures=1)
         self.assertEqual(len(embed_question(client, "Hi")), 2)
         sleep.assert_called_once()
+
+    def test_daily_limit_fails_at_once_without_waiting(self, sleep):
+        client = FakeEmbedder(failures=99, message="Requests per day limit exceeded")
+        with self.assertRaises(errors.APIError):
+            embed_chunks(client, self.chunks)
+        sleep.assert_not_called()
 
     def test_gives_up_after_the_last_retry(self, sleep):
         client = FakeEmbedder(failures=99)

@@ -10,6 +10,7 @@ import httpx
 from google.genai import errors, types
 from pypdf import PdfReader, PdfWriter
 
+from ai_client import hit_daily_limit
 from config import (
     CHAT_MODEL,
     OCR_MAX_CALLS,
@@ -101,7 +102,7 @@ def read_group_safely(client, group_pdf: bytes, numbers: list[int]) -> tuple[lis
         try:
             return read_group(client, group_pdf, numbers)
         except errors.APIError as error:
-            if error.code != 429:
+            if error.code != 429 or hit_daily_limit(error):
                 raise
             # Other people may have used up this minute. One short wait often
             # clears it, and it's still far quicker than failing the upload.
