@@ -1,4 +1,4 @@
-/* Shared by both pages: colours, background, nav, footer, buttons, loader. */
+/* Shared by every page: colours, background, nav, footer, buttons, loader. */
 :root {
   color-scheme: dark;
   --ink: #070a13;
@@ -233,6 +233,7 @@ a { color: var(--cyan); }
   border-top: 1px solid var(--line); color: var(--muted); font-size: .95rem;
 }
 .footer a { font-weight: 700; }
+.footer-links { display: flex; flex-wrap: wrap; gap: 8px 20px; }
 
 @media (max-width: 560px) {
   .nav nav a.hide-small { display: none; }
