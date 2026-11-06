@@ -1,6 +1,6 @@
 // Talks to the backend. Shared by the main page and the quiz.
 const REQUEST_TIMEOUT_MS = 90000;
-const UPLOAD_TIMEOUT_MS = 240000; // a long PDF may wait for the AI's per-minute limit
+const UPLOAD_TIMEOUT_MS = 180000; // a long PDF may wait for the AI's per-minute limit
 const WAKE_TIMEOUT_MS = 90000; // Render's free server can take about a minute
 
 async function apiRequest(path, options = {}, timeoutMs = REQUEST_TIMEOUT_MS) {
@@ -10,8 +10,14 @@ async function apiRequest(path, options = {}, timeoutMs = REQUEST_TIMEOUT_MS) {
       ...options,
       signal: AbortSignal.timeout(timeoutMs),
     });
-  } catch {
-    throw new Error("Couldn't reach the server. Please check your connection and try again.");
+  } catch (failure) {
+    if (failure.name === "TimeoutError") {
+      throw new Error("That took too long. Please try again.");
+    }
+    // No status means no reply at all, which is what a server that's starting looks like.
+    const error = new Error("Couldn't reach the server. Please check your connection and try again.");
+    error.unreachable = true;
+    throw error;
   }
 
   const body = await response.json().catch(() => null);
@@ -42,10 +48,9 @@ async function isAwake(timeoutMs) {
   }
 }
 
-// Make sure the server is up. If it's asleep, show the loader while it wakes.
-async function wakeBackend() {
+async function checkAwake() {
   if (await isAwake(1500)) return true;
-  Loader.show({ cold: true });
+  Loader.setWaking(true);
   const deadline = Date.now() + WAKE_TIMEOUT_MS;
   try {
     while (Date.now() < deadline) {
@@ -54,6 +59,15 @@ async function wakeBackend() {
     }
     return false;
   } finally {
-    Loader.hide();
+    Loader.setWaking(false);
   }
+}
+
+// Wake the server in the background and show that it's happening. This never
+// holds up a request: Render keeps requests waiting while it starts by itself.
+// Only one check runs at a time, and it always ends when the deadline passes.
+let wakeCheck = null;
+function wakeBackend() {
+  wakeCheck ??= checkAwake().finally(() => (wakeCheck = null));
+  return wakeCheck;
 }

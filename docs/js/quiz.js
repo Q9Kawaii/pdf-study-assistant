@@ -252,9 +252,7 @@
       feedback.classList.remove("error");
       Loader.show();
       try {
-        if (!(await wakeBackend())) {
-          throw new Error("The server didn't wake up. Please try again in a minute.");
-        }
+        wakeBackend(); // runs in the background and never holds up the request
         const grade = await postJson("/grade", {
           question: question.text,
           reference_answer: question.reference,

@@ -51,11 +51,10 @@ const Loader = (function () {
     scan.hidden = kind !== "upload";
   }
 
-  function show({ cold = false, kind = "ask" } = {}) {
+  function show({ kind } = {}) {
     activeJobs += 1;
-    if (cold) wake.hidden = false;
-    if (activeJobs > 1 && card.classList.contains("visible")) return;
-    drawPipeline(kind);
+    // A real task replaces the diagram, but waking alone keeps what's on screen.
+    if (kind || !card.classList.contains("visible")) drawPipeline(kind || "ask");
     card.classList.add("visible");
   }
 
@@ -63,8 +62,14 @@ const Loader = (function () {
     activeJobs = Math.max(0, activeJobs - 1);
     if (activeJobs > 0) return;
     card.classList.remove("visible");
-    wake.hidden = true;
   }
 
-  return { show, hide };
+  // The waking note follows the server, not whatever other task is running.
+  function setWaking(waking) {
+    wake.hidden = !waking;
+    if (waking) show();
+    else hide();
+  }
+
+  return { show, hide, setWaking };
 })();
