@@ -1,0 +1,208 @@
+/* Styles for the main page only. */
+main { padding: 0 clamp(16px, 4vw, 48px); }
+
+/* Hero */
+.hero {
+  display: flex; flex-direction: column; justify-content: center; gap: 22px;
+  max-width: 1120px; min-height: calc(100svh - 75px); margin: 0 auto;
+  padding: 48px 0;
+}
+
+.eyebrow { color: var(--cyan); font: 600 .875rem var(--mono); }
+
+.hero-title {
+  max-width: 13ch;
+  font-size: clamp(3rem, 10vw, 7rem); font-weight: 800; letter-spacing: -.02em;
+  line-height: .98;
+}
+.hero-title em {
+  font-style: normal;
+  background: linear-gradient(100deg, var(--cyan), var(--violet), var(--amber), var(--cyan));
+  background-size: 300% 100%;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: shimmer 9s linear infinite;
+}
+@keyframes shimmer { to { background-position: -300% 0; } }
+
+/* The hero title's words rise in one by one. See motion.js. */
+.word { display: inline-block; }
+.js .word { animation: word-rise .75s cubic-bezier(.2, .7, .2, 1) backwards; }
+@keyframes word-rise { from { opacity: 0; transform: translateY(.45em); } }
+
+.hero-text { max-width: 56ch; color: var(--muted); font-size: 1.2rem; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+
+/* Features */
+.features, .assistant { max-width: 1120px; margin: 0 auto; padding: 64px 0 0; }
+
+.section-title { margin-bottom: 28px; font-size: clamp(2rem, 5vw, 3rem); font-weight: 800; }
+
+.feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+
+.feature {
+  padding: 24px; background: var(--panel);
+  border: 1px solid var(--line); border-radius: var(--radius);
+  transition: opacity .7s ease, transform .35s, border-color .2s;
+}
+.feature:nth-child(2) { transition-delay: .1s; }
+.feature:nth-child(3) { transition-delay: .2s; }
+.feature:hover { border-color: var(--cyan); transform: translateY(-5px); transition-delay: 0s; }
+.feature-tag { color: var(--amber); font: 600 .875rem var(--mono); }
+.feature h3 { margin: 10px 0 8px; font-size: 1.5rem; }
+.feature p { color: var(--muted); }
+
+/* Workspace */
+.workspace {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px; align-items: start;
+}
+.column { display: grid; gap: 16px; min-width: 0; }
+
+.card {
+  min-width: 0; padding: 22px; background: var(--panel);
+  border: 1px solid var(--line); border-radius: var(--radius);
+}
+.card h3 { margin-bottom: 14px; font-size: 1.25rem; }
+
+.dropzone {
+  display: grid; gap: 4px; padding: 28px 18px; text-align: center; cursor: pointer;
+  border: 2px dashed var(--line); border-radius: 12px;
+  transition: border-color .2s, background .2s, transform .2s;
+}
+.dropzone:hover, .dropzone.dragging {
+  border-color: var(--cyan); background: rgba(82, 232, 212, .07);
+}
+.dropzone.dragging { transform: scale(1.015); }
+.dropzone.ready { border-style: solid; border-color: var(--cyan); }
+.dropzone:focus-within { outline: 2px solid var(--amber); outline-offset: 3px; }
+.dropzone input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.dropzone strong { overflow-wrap: anywhere; }
+.dropzone span { color: var(--muted); font-size: .9rem; }
+
+.status { margin-top: 10px; font-size: .95rem; }
+.status:empty { display: none; }
+.status.error, .message.error { color: var(--danger); }
+
+/* Chat */
+.chat {
+  display: grid; gap: 12px; max-height: 520px; margin-bottom: 14px;
+  overflow-y: auto;
+}
+.chat-empty { color: var(--muted); }
+
+.message {
+  padding: 12px 14px; border-radius: 12px; overflow-wrap: anywhere;
+  animation: message-in .35s ease backwards;
+}
+@keyframes message-in { from { opacity: 0; transform: translateY(10px); } }
+
+.message.user { justify-self: end; max-width: 90%; background: var(--panel-raised); }
+.message.bot { border: 1px solid var(--line); }
+.message.bot p { white-space: pre-wrap; }
+.message.not-found { border-color: var(--amber); }
+.message.not-found p { color: var(--amber); font-weight: 700; }
+
+.sources { margin-top: 10px; }
+.sources summary { color: var(--cyan); font-size: .95rem; font-weight: 700; cursor: pointer; }
+.source {
+  margin-top: 8px; padding: 10px 12px; background: var(--panel-raised);
+  border-left: 3px solid var(--amber); border-radius: 6px;
+  color: var(--muted); font-size: .9rem; line-height: 1.5;
+}
+.source-meta {
+  display: block; margin-bottom: 4px;
+  color: var(--amber); font: 600 .75rem var(--mono);
+}
+
+textarea {
+  display: block; width: 100%; padding: 12px;
+  background: var(--ink); color: var(--text);
+  border: 1px solid var(--line); border-radius: 10px;
+  font: 400 1rem/1.5 var(--body); resize: vertical;
+  transition: border-color .2s;
+}
+textarea:focus { outline: none; border-color: var(--cyan); }
+textarea::placeholder { color: var(--muted); }
+textarea:disabled { opacity: .6; cursor: not-allowed; }
+
+.ask-row {
+  display: flex; align-items: center; justify-content: space-between; margin-top: 10px;
+}
+.counter { color: var(--muted); font: 400 .8125rem var(--mono); }
+
+/* RAG X-ray */
+.xray { position: sticky; top: 84px; max-height: calc(100vh - 100px); overflow-y: auto; }
+.xray-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  margin-bottom: 12px;
+}
+.xray-head h3 { margin: 0; }
+.xray-empty { color: var(--muted); }
+
+.xray-steps { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+
+.xray-step {
+  position: relative; padding: 0 0 18px 22px;
+  opacity: .25; transition: opacity .4s;
+}
+.xray-step.active { opacity: 1; }
+/* The timeline dot and the line joining it to the next step. */
+.xray-step::before {
+  content: ""; position: absolute; left: 0; top: 6px; width: 10px; height: 10px;
+  border-radius: 50%; background: var(--line); transition: background .3s, box-shadow .3s;
+}
+.xray-step::after {
+  content: ""; position: absolute; left: 4px; top: 20px; bottom: 0; width: 2px;
+  background: var(--line);
+}
+.xray-step:last-child::after { display: none; }
+.xray-step.active::before { background: var(--cyan); box-shadow: 0 0 12px var(--cyan); }
+
+.xray-step h4 { margin-bottom: 8px; font: 600 .8125rem var(--mono); color: var(--cyan); }
+.xray-question { font-size: 1.05rem; font-weight: 500; overflow-wrap: anywhere; }
+.xray-note { margin-top: 6px; color: var(--muted); font-size: .85rem; line-height: 1.4; }
+.xray-answer { white-space: pre-wrap; overflow-wrap: anywhere; }
+.xray-answer.not-found { color: var(--amber); font-weight: 700; }
+
+/* Each bar is one real number from the question's vector. */
+.vector-bars { display: flex; align-items: center; gap: 2px; height: 64px; }
+.vector-bars span {
+  flex: 1; min-width: 0; height: var(--size); border-radius: 2px;
+  background: var(--cyan); transform: scaleY(0);
+  transition: transform .4s cubic-bezier(.2, .7, .2, 1);
+  transition-delay: calc(var(--index) * 22ms);
+}
+.vector-bars span.negative { background: var(--violet); }
+.vector-bars.shown span { transform: none; }
+
+.score-list { display: grid; gap: 5px; }
+.score-row {
+  display: grid; grid-template-columns: 92px 1fr 48px; gap: 8px; align-items: center;
+  color: var(--muted); font: 400 .75rem var(--mono);
+}
+.score-track { height: 8px; background: var(--panel-raised); border-radius: 4px; overflow: hidden; }
+.score-fill {
+  display: block; height: 100%; width: 0; border-radius: 4px; background: var(--violet);
+  transition: width .7s cubic-bezier(.2, .7, .2, 1);
+  transition-delay: calc(var(--index) * 45ms);
+}
+.score-row.top { color: var(--amber); font-weight: 600; }
+.score-row.top .score-fill { background: var(--amber); }
+
+.top-list { display: grid; gap: 8px; }
+.top-chunk {
+  padding: 10px 12px; background: var(--panel-raised);
+  border-left: 3px solid var(--amber); border-radius: 6px;
+  font-size: .875rem; line-height: 1.45; overflow-wrap: anywhere;
+  animation: message-in .4s ease backwards;
+  animation-delay: calc(var(--index) * 130ms);
+}
+.top-chunk .source-meta { margin-bottom: 3px; }
+
+@media (max-width: 900px) {
+  .feature-grid, .workspace { grid-template-columns: minmax(0, 1fr); }
+  .feature, .feature:nth-child(2), .feature:nth-child(3) { transition-delay: 0s; }
+  /* A stacked X-ray scrolls with the page instead of inside its own box. */
+  .xray { position: static; max-height: none; }
+  .hero { min-height: auto; padding: 56px 0 24px; }
+}
