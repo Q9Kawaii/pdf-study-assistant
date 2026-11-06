@@ -5,7 +5,7 @@ from unittest.mock import patch
 from google.genai import errors
 
 from config import EMBED_BATCH_SIZE
-from embeddings import embed_chunks
+from embeddings import embed_chunks, embed_question
 
 
 class FakeEmbedder:
@@ -40,6 +40,11 @@ class EmbedChunksTests(unittest.TestCase):
         client = FakeEmbedder(failures=2)
         self.assertEqual(len(embed_chunks(client, self.chunks)), len(self.chunks))
         self.assertEqual(sleep.call_count, 2)
+
+    def test_a_question_waits_for_the_minute_limit_too(self, sleep):
+        client = FakeEmbedder(failures=1)
+        self.assertEqual(len(embed_question(client, "Hi")), 2)
+        sleep.assert_called_once()
 
     def test_gives_up_after_the_last_retry(self, sleep):
         client = FakeEmbedder(failures=99)
