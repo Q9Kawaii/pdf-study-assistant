@@ -137,79 +137,8 @@ textarea:disabled { opacity: .6; cursor: not-allowed; }
 }
 .counter { color: var(--muted); font: 400 .8125rem var(--mono); }
 
-/* RAG X-ray */
-.xray { position: sticky; top: 84px; max-height: calc(100vh - 100px); overflow-y: auto; }
-.xray-head {
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  margin-bottom: 12px;
-}
-.xray-head h3 { margin: 0; }
-.xray-empty { color: var(--muted); }
-
-.xray-steps { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
-
-.xray-step {
-  position: relative; padding: 0 0 18px 22px;
-  opacity: .25; transition: opacity .4s;
-}
-.xray-step.active { opacity: 1; }
-/* The timeline dot and the line joining it to the next step. */
-.xray-step::before {
-  content: ""; position: absolute; left: 0; top: 6px; width: 10px; height: 10px;
-  border-radius: 50%; background: var(--line); transition: background .3s, box-shadow .3s;
-}
-.xray-step::after {
-  content: ""; position: absolute; left: 4px; top: 20px; bottom: 0; width: 2px;
-  background: var(--line);
-}
-.xray-step:last-child::after { display: none; }
-.xray-step.active::before { background: var(--cyan); box-shadow: 0 0 12px var(--cyan); }
-
-.xray-step h4 { margin-bottom: 8px; font: 600 .8125rem var(--mono); color: var(--cyan); }
-.xray-question { font-size: 1.05rem; font-weight: 500; overflow-wrap: anywhere; }
-.xray-note { margin-top: 6px; color: var(--muted); font-size: .85rem; line-height: 1.4; }
-.xray-answer { white-space: pre-wrap; overflow-wrap: anywhere; }
-.xray-answer.not-found { color: var(--amber); font-weight: 700; }
-
-/* Each bar is one real number from the question's vector. */
-.vector-bars { display: flex; align-items: center; gap: 2px; height: 64px; }
-.vector-bars span {
-  flex: 1; min-width: 0; height: var(--size); border-radius: 2px;
-  background: var(--cyan); transform: scaleY(0);
-  transition: transform .4s cubic-bezier(.2, .7, .2, 1);
-  transition-delay: calc(var(--index) * 22ms);
-}
-.vector-bars span.negative { background: var(--violet); }
-.vector-bars.shown span { transform: none; }
-
-.score-list { display: grid; gap: 5px; }
-.score-row {
-  display: grid; grid-template-columns: 92px 1fr 48px; gap: 8px; align-items: center;
-  color: var(--muted); font: 400 .75rem var(--mono);
-}
-.score-track { height: 8px; background: var(--panel-raised); border-radius: 4px; overflow: hidden; }
-.score-fill {
-  display: block; height: 100%; width: 0; border-radius: 4px; background: var(--violet);
-  transition: width .7s cubic-bezier(.2, .7, .2, 1);
-  transition-delay: calc(var(--index) * 45ms);
-}
-.score-row.top { color: var(--amber); font-weight: 600; }
-.score-row.top .score-fill { background: var(--amber); }
-
-.top-list { display: grid; gap: 8px; }
-.top-chunk {
-  padding: 10px 12px; background: var(--panel-raised);
-  border-left: 3px solid var(--amber); border-radius: 6px;
-  font-size: .875rem; line-height: 1.45; overflow-wrap: anywhere;
-  animation: message-in .4s ease backwards;
-  animation-delay: calc(var(--index) * 130ms);
-}
-.top-chunk .source-meta { margin-bottom: 3px; }
-
 @media (max-width: 900px) {
   .feature-grid, .workspace { grid-template-columns: minmax(0, 1fr); }
   .feature, .feature:nth-child(2), .feature:nth-child(3) { transition-delay: 0s; }
-  /* A stacked X-ray scrolls with the page instead of inside its own box. */
-  .xray { position: static; max-height: none; }
   .hero { min-height: auto; padding: 56px 0 24px; }
 }
