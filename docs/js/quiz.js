@@ -97,6 +97,23 @@
     },
     {
       type: "choice",
+      text: "Which pages does this app send to OCR?",
+      options: [
+        "Every page of every PDF",
+        "Only the first page",
+        "Pages that have pictures but almost no real text",
+        "Only pages with tables",
+      ],
+      answer: 2,
+    },
+    {
+      type: "written",
+      text: "Why does a long scanned PDF use a few calls of several pages each, instead of one call per page?",
+      reference:
+        "The free plan allows only 15 AI requests a minute for all users. One call per page could use them all up and block people's questions. A few calls running at the same time stay fast and leave room.",
+    },
+    {
+      type: "choice",
       text: "In this app, what is sent to Gemini to write an answer?",
       options: [
         "The whole PDF and the question",
