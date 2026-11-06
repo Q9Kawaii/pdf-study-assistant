@@ -9,7 +9,8 @@ RAG is written by hand with numpy: no LangChain and no vector database.
 
 ## How it works
 
-1. Extract the text of each page with pypdf.
+1. Extract the text of each page with pypdf. Scanned pages are read by Gemini
+   vision (OCR), all at the same time.
 2. Cut it into chunks of about 500 characters, with 100 characters of overlap.
 3. Embed the chunks with Gemini, in batches.
 4. Embed the question, then score every chunk with cosine similarity.

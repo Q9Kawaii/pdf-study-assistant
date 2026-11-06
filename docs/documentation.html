@@ -154,7 +154,7 @@
         <h2>How this project works, step by step</h2>
         <h3>When you upload a PDF</h3>
         <ol>
-          <li><strong>Extract:</strong> pypdf pulls the text out of each page.</li>
+          <li><strong>Extract:</strong> pypdf pulls the text out of each page. If a page is only a picture, like a scan, Gemini reads it instead. This is called OCR.</li>
           <li><strong>Chunk:</strong> the text is cut into small overlapping chunks, and each keeps its page number.</li>
           <li><strong>Embed:</strong> Gemini turns the chunks into vectors. We send them in batches, so it takes a few network trips instead of one per chunk.</li>
           <li><strong>Store:</strong> the chunks and vectors stay in the server's memory, under a random session ID.</li>
@@ -197,8 +197,10 @@
         <ul>
           <li><strong>Only the top 3 chunks are read.</strong> If the answer is spread across many pages, parts can be missed. So "summarise the whole PDF" works badly.</li>
           <li><strong>The search can miss.</strong> If the right chunk isn't in the top 3, you may get "Not found" even though the answer exists.</li>
-          <li><strong>Scanned PDFs don't work.</strong> They are pictures of text, and we don't do OCR (reading text from images).</li>
-          <li><strong>Tables and images are weak spots.</strong> Only plain text is extracted.</li>
+          <li><strong>OCR can misread.</strong> OCR means reading text from a picture. It lets scanned PDFs work, but messy handwriting or blurry scans can come out wrong. Check the sources.</li>
+          <li><strong>Scans are big files.</strong> The 2 MB limit is reached sooner, because pictures take more space than text.</li>
+          <li><strong>Scans take longer to upload.</strong> Reading pictures is slower than reading text. The free plan allows only 15 AI requests a minute for everyone, so one upload uses at most 5, and each one reads a few pages.</li>
+          <li><strong>Tables and images are weak spots.</strong> Only text is kept. The app doesn't understand pictures or diagrams.</li>
           <li><strong>The index lives in memory.</strong> When the server restarts, uploads are gone and you upload again. This keeps the app simple.</li>
           <li><strong>The server sleeps.</strong> Free hosting can sleep when idle, so the first visit may be slow.</li>
           <li><strong>Long PDFs upload slowly.</strong> The free plan allows 100 embeddings a minute, and each chunk counts as one. A long PDF may need to wait about a minute. Batching saves network trips, but it doesn't save this quota.</li>
@@ -219,6 +221,7 @@
             <tbody>
               <tr><td>Python + FastAPI</td><td>Runs the API</td><td>Simple to read, and it checks incoming data for us.</td></tr>
               <tr><td>pypdf</td><td>Reads PDF text</td><td>Small and pure Python, so it's easy to deploy.</td></tr>
+              <tr><td>Gemini vision</td><td>Reads scanned pages (OCR)</td><td>No heavy OCR software on the small server. A few calls run at the same time, so it stays fast.</td></tr>
               <tr><td>Gemini chat model</td><td>Writes answers and grades the quiz</td><td>It has a free tier and it's fast.</td></tr>
               <tr><td>gemini-embedding-001</td><td>Makes the vectors</td><td>Good quality, and it accepts batches.</td></tr>
               <tr><td>numpy</td><td>Does the vector math</td><td>A few lines do the whole search. I can explain each one.</td></tr>
