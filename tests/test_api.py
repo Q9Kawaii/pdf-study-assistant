@@ -116,11 +116,33 @@ class ApiTests(unittest.TestCase):
         files = {"file": ("big.pdf", b"x" * (3 * 1024 * 1024), "application/pdf")}
         self.assertEqual(self.api.post("/upload", files=files).status_code, 413)
 
-    def test_upload_explains_a_scanned_pdf(self):
+    def test_upload_explains_an_empty_pdf(self):
         files = {"file": ("scan.pdf", blank_pdf(1), "application/pdf")}
         response = self.api.post("/upload", files=files)
         self.assertEqual(response.status_code, 400)
-        self.assertIn("scanned", response.json()["detail"])
+        self.assertIn("looks empty", response.json()["detail"])
+
+    def test_upload_reads_scanned_pages_with_ocr(self):
+        self.models.answer = "Text from the scan."
+        files = {"file": ("scan.pdf", blank_pdf(2), "application/pdf")}
+        with patch("main.extract_pages", return_value=([], [1, 2])):
+            body = self.api.post("/upload", files=files).json()
+        self.assertEqual(body["pages"], 2)
+        self.assertEqual(body["ocr_pages"], 2)
+        self.assertEqual(body["unread_pages"], [])
+        stored = sessions[body["session_id"]]["chunks"]
+        self.assertEqual([chunk["page"] for chunk in stored], [1, 2])
+
+    def test_upload_explains_when_ocr_fails_on_every_page(self):
+        def broken(**kwargs):
+            raise httpx.ReadTimeout("too slow")
+
+        self.models.generate_content = broken
+        files = {"file": ("scan.pdf", blank_pdf(1), "application/pdf")}
+        with patch("main.extract_pages", return_value=([], [1])):
+            response = self.api.post("/upload", files=files)
+        self.assertEqual(response.status_code, 502)
+        self.assertIn("couldn't read", response.json()["detail"])
 
     def test_grade_returns_score_and_feedback(self):
         self.models.answer = '{"score": 8, "feedback": "Nice work."}'

@@ -20,11 +20,13 @@ from config import (
     MAX_QUESTION_CHARS,
     MAX_QUIZ_ANSWER_CHARS,
     MAX_QUIZ_TEXT_CHARS,
+    OCR_MAX_CALLS,
     UPLOAD_RATE_LIMIT,
 )
 from embeddings import embed_chunks, embed_question
 from grading import grade_answer
 from rate_limits import limiter, spend_daily_quota
+from ocr import ocr_pages
 from pdf_reader import PdfError, extract_pages
 from retrieval import cosine_similarities, top_indices
 from sessions import create_session, get_session
@@ -136,16 +138,32 @@ def health():
 @app.post("/upload")
 @limiter.limit(UPLOAD_RATE_LIMIT)  # slowapi needs the "request" argument below
 def upload(request: Request, file: UploadFile = File(...)):
-    """Build a searchable index from a PDF: extract, chunk, embed, store."""
+    """Build a searchable index from a PDF: extract, OCR, chunk, embed, store."""
     # Read one byte past the limit: if we get it, the file is too big.
     pdf_bytes = file.file.read(MAX_PDF_BYTES + 1)
     if len(pdf_bytes) > MAX_PDF_BYTES:
         raise HTTPException(status_code=413, detail="That PDF is too big. The limit is 2 MB.")
 
     try:
-        pages = extract_pages(pdf_bytes)
+        pages, image_pages = extract_pages(pdf_bytes)
     except PdfError as error:
         raise HTTPException(status_code=400, detail=str(error))
+
+    # Pages that are pictures of text go through OCR. Normal pages skip this.
+    unread_pages = []
+    if image_pages:
+        require_client()
+        spend_daily_quota(min(len(image_pages), OCR_MAX_CALLS))
+        ocr_results, unread_pages = ocr_pages(client, pdf_bytes, image_pages)
+        pages = sorted(pages + ocr_results, key=lambda page: page["page"])
+
+    if not pages:
+        if unread_pages:
+            raise HTTPException(
+                status_code=502,
+                detail="The AI couldn't read your pages. Please try again in a minute.",
+            )
+        raise HTTPException(status_code=400, detail="No readable text found in that PDF.")
 
     chunks = chunk_pages(pages)
     if len(chunks) > MAX_CHUNKS:
@@ -163,6 +181,8 @@ def upload(request: Request, file: UploadFile = File(...)):
         "session_id": create_session(chunks, vectors),
         "pages": len(pages),
         "chunks": len(chunks),
+        "ocr_pages": len(image_pages) - len(unread_pages),  # all of these have text
+        "unread_pages": unread_pages,
     }
 
 
