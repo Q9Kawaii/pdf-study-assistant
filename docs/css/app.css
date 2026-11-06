@@ -85,6 +85,7 @@ main { padding: 0 clamp(16px, 4vw, 48px); }
 
 /* Chat */
 .chat {
+  position: relative; /* lets app.js measure a message's place in the chat */
   display: grid; gap: 12px; max-height: 520px; margin-bottom: 14px;
   overflow-y: auto;
 }

@@ -61,7 +61,8 @@
       details.append(item);
     }
     message.append(details);
-    chat.scrollTop = chat.scrollHeight;
+    // Sources can be long, so scroll to where the answer starts, not the end.
+    chat.scrollTop = message.offsetTop;
   }
 
   async function uploadPdf(file) {
