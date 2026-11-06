@@ -19,6 +19,9 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 
+/* Any "display" rule would otherwise beat the hidden attribute. */
+[hidden] { display: none !important; }
+
 html { scroll-behavior: smooth; scroll-padding-top: 88px; }
 
 body {
