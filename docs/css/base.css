@@ -1,0 +1,184 @@
+/* Shared by both pages: colours, background, nav, footer, buttons, loader. */
+:root {
+  color-scheme: dark;
+  --ink: #070a13;
+  --panel: #101626;
+  --panel-raised: #18213a;
+  --line: #2f3c5c;
+  --text: #f4f7fc;
+  --muted: #c3cde0;
+  --cyan: #52e8d4;
+  --violet: #a899ff;
+  --amber: #ffc266;
+  --danger: #ff9d9d;
+  --display: "Bricolage Grotesque", system-ui, sans-serif;
+  --body: "DM Sans", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, monospace;
+  --radius: 16px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; scroll-padding-top: 88px; }
+
+body {
+  margin: 0;
+  background: var(--ink);
+  color: var(--text);
+  font: 400 1.0625rem/1.65 var(--body);
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4 { margin: 0; font-family: var(--display); line-height: 1.1; }
+p { margin: 0; }
+a { color: var(--cyan); }
+
+:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap;
+}
+
+/* Animated background: slow colour fields, with particles on a canvas above. */
+.bg-gradient {
+  position: fixed; inset: -20%; z-index: -2;
+  background:
+    radial-gradient(38% 34% at 22% 26%, rgba(82, 232, 212, .20), transparent 70%),
+    radial-gradient(34% 40% at 80% 18%, rgba(168, 153, 255, .22), transparent 70%),
+    radial-gradient(40% 36% at 62% 84%, rgba(255, 194, 102, .10), transparent 70%);
+  animation: drift 24s ease-in-out infinite alternate;
+}
+
+@keyframes drift {
+  to { transform: translate3d(5%, -4%, 0) rotate(8deg) scale(1.1); }
+}
+
+#particles { position: fixed; inset: 0; z-index: -1; width: 100%; height: 100%; }
+
+/* Nav */
+.nav {
+  position: sticky; top: 0; z-index: 10;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 14px clamp(16px, 4vw, 48px);
+  background: rgba(7, 10, 19, .78);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(47, 60, 92, .6);
+}
+
+.brand {
+  color: var(--text); font: 800 1.2rem var(--display); text-decoration: none;
+  white-space: nowrap;
+}
+.brand span { color: var(--cyan); }
+
+.nav nav { display: flex; gap: clamp(12px, 3vw, 28px); }
+.nav nav a {
+  position: relative; color: var(--muted); font-size: .95rem; text-decoration: none;
+  transition: color .2s;
+}
+.nav nav a::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -4px; height: 2px;
+  background: var(--cyan); transform: scaleX(0); transform-origin: left;
+  transition: transform .25s;
+}
+.nav nav a:hover { color: var(--text); }
+.nav nav a:hover::after { transform: scaleX(1); }
+
+/* Buttons */
+.button {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 46px; padding: 0 22px;
+  border: 1px solid transparent; border-radius: 999px;
+  font: 700 1rem var(--body); text-decoration: none; cursor: pointer;
+  transition: transform .18s, box-shadow .18s, background .18s, border-color .18s;
+}
+.button:hover:not(:disabled) { transform: translateY(-2px); }
+.button:active:not(:disabled) { transform: translateY(0) scale(.98); }
+.button:disabled { opacity: .5; cursor: not-allowed; }
+
+.button.primary { background: var(--cyan); color: #04211d; }
+.button.primary:hover:not(:disabled) { box-shadow: 0 8px 28px rgba(82, 232, 212, .35); }
+
+.button.ghost { background: transparent; border-color: var(--line); color: var(--text); }
+.button.ghost:hover:not(:disabled) { border-color: var(--cyan); }
+
+.button.small { min-height: 36px; padding: 0 14px; font-size: .875rem; }
+
+/* The Question -> Answer strip, used in the hero and the loader. */
+.flow {
+  display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none;
+  font: 600 .8125rem var(--mono);
+}
+.flow li {
+  padding: 7px 12px; border: 1px solid var(--line); border-radius: 8px;
+  background: var(--panel); color: var(--muted);
+  animation: flow-pulse 5s infinite;
+}
+.flow li:nth-child(2) { animation-delay: 1s; }
+.flow li:nth-child(3) { animation-delay: 2s; }
+.flow li:nth-child(4) { animation-delay: 3s; }
+.flow li:nth-child(5) { animation-delay: 4s; }
+
+@keyframes flow-pulse {
+  0%, 22%, 100% { border-color: var(--line); color: var(--muted); box-shadow: none; }
+  6%, 16% {
+    border-color: var(--cyan); color: var(--cyan);
+    box-shadow: 0 0 18px rgba(82, 232, 212, .35);
+  }
+}
+
+/* Loader: a floating card, so it never blocks reading the page. */
+.loader {
+  position: fixed; right: 20px; bottom: 20px; z-index: 30;
+  width: min(380px, calc(100vw - 32px));
+  padding: 16px 18px;
+  background: var(--panel-raised);
+  border: 1px solid var(--cyan); border-radius: var(--radius);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, .55);
+  opacity: 0; transform: translateY(16px); pointer-events: none;
+  transition: opacity .25s, transform .25s;
+}
+.loader.visible { opacity: 1; transform: none; pointer-events: auto; }
+.loader-title { font-weight: 700; }
+.loader-note { margin-top: 4px; color: var(--muted); font-size: .875rem; line-height: 1.4; }
+.loader-sample {
+  margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line);
+  color: var(--muted); font-size: .8125rem;
+}
+.loader-stage {
+  display: block; min-height: 2.8em; margin-top: 4px;
+  color: var(--cyan); font: 400 .8125rem/1.4 var(--mono);
+}
+.loader .flow { margin-top: 10px; font-size: .6875rem; gap: 4px; }
+.loader .flow li { padding: 3px 6px; animation: none; }
+.loader .flow li.active { border-color: var(--cyan); color: var(--cyan); }
+
+/* Scroll reveals. Only hidden if JavaScript is on, so nothing can get stuck. */
+.js .reveal {
+  opacity: 0; transform: translateY(26px);
+  transition: opacity .7s ease, transform .7s cubic-bezier(.2, .7, .2, 1);
+}
+.js .reveal.in-view { opacity: 1; transform: none; }
+
+/* Footer */
+.footer {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: 12px; margin-top: 64px; padding: 28px clamp(16px, 4vw, 48px);
+  border-top: 1px solid var(--line); color: var(--muted); font-size: .95rem;
+}
+.footer a { font-weight: 700; }
+
+@media (max-width: 560px) {
+  .nav nav a:first-child { display: none; }
+}
+
+/* Respect people who ask their device for less motion. */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation: none !important;
+    transition-duration: .01ms !important;
+  }
+  .js .reveal { opacity: 1; transform: none; }
+}
