@@ -12,6 +12,7 @@ EMBED_BATCH_SIZE = 90
 EMBED_RETRIES = 3  # how many times to wait when the minute's limit is used up
 EMBED_RETRY_WAIT_SECONDS = 30
 MAX_ANSWER_TOKENS = 1024  # caps answer length, which also protects the quota
+GEMINI_TIMEOUT_MS = 30000  # give up on any single Gemini call after 30 seconds
 
 # RAG settings.
 CHUNK_SIZE = 500  # characters per chunk
