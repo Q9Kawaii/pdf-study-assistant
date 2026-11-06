@@ -6,7 +6,7 @@ from fastapi import HTTPException, Request
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
-from config import DAILY_GEMINI_CALL_CAP
+from config import DAILY_GEMINI_REQUEST_CAP
 
 
 def get_client_ip(request: Request) -> str:
@@ -19,21 +19,21 @@ def get_client_ip(request: Request) -> str:
 
 limiter = Limiter(key_func=get_client_ip)
 
-# Counts today's Gemini calls from all users. Resets on a server restart.
+# Counts today's Gemini requests from all users. Resets on a server restart.
 daily_usage = {"date": "", "count": 0}
 lock = Lock()  # requests run in parallel threads, so changes take turns
 
 
-def spend_daily_quota(calls: int) -> None:
-    """Count Gemini calls we're about to make, or refuse if the cap is reached."""
+def spend_daily_quota(requests: int) -> None:
+    """Count Gemini requests we're about to make, or refuse if over the cap."""
     today = datetime.now(timezone.utc).date().isoformat()
     with lock:
         if daily_usage["date"] != today:  # a new day, so start from zero
             daily_usage.update(date=today, count=0)
-        if daily_usage["count"] + calls > DAILY_GEMINI_CALL_CAP:
+        if daily_usage["count"] + requests > DAILY_GEMINI_REQUEST_CAP:
             raise HTTPException(
                 status_code=429,
                 detail="This demo has used up today's free AI quota. "
                 "Please come back tomorrow.",
             )
-        daily_usage["count"] += calls
+        daily_usage["count"] += requests

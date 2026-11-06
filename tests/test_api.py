@@ -105,7 +105,7 @@ class ApiTests(unittest.TestCase):
     def test_global_daily_cap_stops_all_users(self):
         rate_limits.daily_usage.update(
             date=rate_limits.datetime.now(rate_limits.timezone.utc).date().isoformat(),
-            count=rate_limits.DAILY_GEMINI_CALL_CAP,
+            count=rate_limits.DAILY_GEMINI_REQUEST_CAP,
         )
         response = self.ask()
         self.assertEqual(response.status_code, 429)

@@ -1,6 +1,4 @@
 """PDF Study Assistant API. Run locally with: uvicorn main:app --reload"""
-import math
-
 import httpx
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -15,7 +13,6 @@ from chunker import chunk_pages
 from config import (
     ALLOWED_ORIGINS,
     ASK_RATE_LIMIT,
-    EMBED_BATCH_SIZE,
     GRADE_RATE_LIMIT,
     LOCALHOST_ORIGIN_REGEX,
     MAX_CHUNKS,
@@ -160,7 +157,7 @@ def upload(request: Request, file: UploadFile = File(...)):
 
     require_client()
     # Last check before spending quota, so rejected uploads aren't counted.
-    spend_daily_quota(math.ceil(len(chunks) / EMBED_BATCH_SIZE))
+    spend_daily_quota(len(chunks))  # Gemini counts each chunk as one request
     vectors = embed_chunks(client, chunks)
     return {
         "session_id": create_session(chunks, vectors),
@@ -191,7 +188,7 @@ def ask(request: Request, body: AskRequest):
         )
 
     require_client()
-    spend_daily_quota(2)  # one call embeds the question, one writes the answer
+    spend_daily_quota(2)  # one embeds the question, one writes the answer
 
     # Retrieval: embed the question, score every chunk, keep the best ones.
     question_vector = embed_question(client, question)
