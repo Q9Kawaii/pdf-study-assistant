@@ -92,7 +92,13 @@
       dropzoneTitle.textContent = file.name;
       dropzoneHint.textContent =
         `${result.pages} page${result.pages === 1 ? "" : "s"}, ` +
-        `${result.chunks} chunk${result.chunks === 1 ? "" : "s"} indexed. Tap to replace.`;
+        `${result.chunks} chunk${result.chunks === 1 ? "" : "s"} indexed` +
+        (result.ocr_pages ? `, ${result.ocr_pages} read with OCR` : "") +
+        ". Tap to replace.";
+      // Some pages failed, but the rest are usable, so we warn and carry on.
+      if (result.unread_pages.length) {
+        setStatus(`Couldn't read page ${result.unread_pages.join(", ")}. Answers won't include it.`, true);
+      }
       question.focus();
     } catch (error) {
       // Naming the file makes it clear the upload happened but was refused.
@@ -109,7 +115,7 @@
     sessionId = null;
     dropzone.classList.remove("ready");
     dropzoneTitle.textContent = "Drop a PDF here, or tap to choose";
-    dropzoneHint.textContent = "Up to 2 MB and 20 pages. It must have real text, not scanned images.";
+    dropzoneHint.textContent = "Up to 2 MB and 20 pages. Scanned PDFs work too.";
   }
 
   async function askQuestion(text) {
