@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 import httpx
 from fastapi.testclient import TestClient
+from google.genai import errors
 
 import rate_limits
 import main
@@ -168,6 +169,15 @@ class ApiTests(unittest.TestCase):
         for _ in range(10):
             self.assertEqual(self.grade().status_code, 200)
         self.assertEqual(self.grade().status_code, 429)
+
+    def test_gemini_daily_limit_says_come_back_tomorrow(self):
+        def used_up(**kwargs):
+            raise errors.APIError(429, {"error": {"message": "Requests per day exceeded", "status": "LIMIT"}})
+
+        self.models.embed_content = used_up
+        response = self.ask()
+        self.assertEqual(response.status_code, 429)
+        self.assertIn("tomorrow", response.json()["detail"])
 
     def test_gemini_timeout_gets_a_friendly_error(self):
         def stuck(**kwargs):

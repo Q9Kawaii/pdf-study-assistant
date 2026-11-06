@@ -19,6 +19,8 @@ def get_client_ip(request: Request) -> str:
 
 limiter = Limiter(key_func=get_client_ip)
 
+QUOTA_USED_UP = "This demo has used up today's free AI quota. Please come back tomorrow."
+
 # Counts today's Gemini requests from all users. Resets on a server restart.
 daily_usage = {"date": "", "count": 0}
 lock = Lock()  # requests run in parallel threads, so changes take turns
@@ -31,9 +33,5 @@ def spend_daily_quota(requests: int) -> None:
         if daily_usage["date"] != today:  # a new day, so start from zero
             daily_usage.update(date=today, count=0)
         if daily_usage["count"] + requests > DAILY_GEMINI_REQUEST_CAP:
-            raise HTTPException(
-                status_code=429,
-                detail="This demo has used up today's free AI quota. "
-                "Please come back tomorrow.",
-            )
+            raise HTTPException(status_code=429, detail=QUOTA_USED_UP)
         daily_usage["count"] += requests

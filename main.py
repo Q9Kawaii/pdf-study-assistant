@@ -9,7 +9,7 @@ from google.genai import errors
 from pydantic import BaseModel
 from slowapi.errors import RateLimitExceeded
 
-from ai_client import client
+from ai_client import client, hit_daily_limit
 from answering import NOT_FOUND, answer_question
 from chunker import chunk_pages
 from config import (
@@ -27,7 +27,7 @@ from config import (
 )
 from embeddings import embed_chunks, embed_question
 from grading import grade_answer
-from rate_limits import limiter, spend_daily_quota
+from rate_limits import QUOTA_USED_UP, limiter, spend_daily_quota
 from ocr import ocr_pages
 from pdf_reader import PdfError, extract_pages
 from retrieval import cosine_similarities, top_indices
@@ -82,6 +82,8 @@ def gemini_error_handler(request: Request, error: errors.APIError):
     """Turn any Gemini failure into a message the user can understand."""
     # flush=True sends this to Render's logs right away, not when a buffer fills.
     print(f"Gemini error {error.code}: {error.message}", flush=True)
+    if hit_daily_limit(error):
+        return JSONResponse(status_code=429, content={"detail": QUOTA_USED_UP})
     if error.code == 429:
         return JSONResponse(
             status_code=429,
