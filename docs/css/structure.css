@@ -52,8 +52,6 @@ details > summary { list-style: none; }
 details > summary::-webkit-details-marker { display: none; }
 .tree-root { display: flex; gap: 8px; padding: 6px 8px; cursor: pointer; }
 .tree-root .tree-name { font-size: .95rem; }
-.tree-chevron { transition: transform .2s; }
-details[open] > summary .tree-chevron { transform: rotate(90deg); }
 
 /* Detail panel. */
 .detail {
