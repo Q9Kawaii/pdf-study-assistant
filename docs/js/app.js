@@ -15,12 +15,38 @@
   const askButton = document.getElementById("ask-button");
   const counter = document.getElementById("counter");
 
+  const SLOW_UPLOAD_SECONDS = 15;
+  const RETRY_WAITS_MS = [3000, 8000, 15000];
+
   let sessionId = null;
   let busy = false;
+  let uploadTimer = null; // set while an upload is running
+  let uploadNotice = "";
 
   function setStatus(message, isError = false) {
     uploadStatus.textContent = message;
     uploadStatus.classList.toggle("error", isError);
+    uploadStatus.classList.remove("working");
+  }
+
+  // Show right away that a file arrived, with a real count of the seconds.
+  function startUploadStatus(fileName) {
+    const started = Date.now();
+    uploadNotice = "";
+    const draw = () => {
+      const seconds = Math.round((Date.now() - started) / 1000);
+      const hint = seconds >= SLOW_UPLOAD_SECONDS ? " Scans and long PDFs can take a minute." : "";
+      setStatus(`Reading ${fileName}... ${seconds}s.${hint}${uploadNotice}`);
+      uploadStatus.classList.add("working");
+    };
+    draw();
+    uploadTimer = setInterval(draw, 1000);
+  }
+
+  function stopUploadStatus() {
+    clearInterval(uploadTimer);
+    uploadTimer = null;
+    setStatus("");
   }
 
   function refreshControls() {
@@ -75,8 +101,37 @@
     chat.scrollTop = message.offsetTop;
   }
 
+  async function sendPdf(file) {
+    const send = () => {
+      const data = new FormData();
+      data.append("file", file);
+      return apiRequest("/upload", { method: "POST", body: data }, UPLOAD_TIMEOUT_MS);
+    };
+    // A server that's still starting can drop a request, so we try a few more
+    // times. These waits are fixed, so nothing here depends on the wake check.
+    for (const wait of RETRY_WAITS_MS) {
+      try {
+        return await send();
+      } catch (error) {
+        if (!error.unreachable) throw error;
+        await new Promise((resolve) => setTimeout(resolve, wait));
+      }
+    }
+    return send();
+  }
+
   async function uploadPdf(file) {
-    if (busy || !file) return;
+    if (!file) {
+      setStatus("Couldn't read that file. Try tapping the box to choose it instead.", true);
+      return;
+    }
+    if (busy) {
+      // Never ignore a file silently, or it looks like nothing happened.
+      const notice = "Please wait for the current task to finish, then try again.";
+      if (uploadTimer) uploadNotice = ` ${notice}`;
+      else setStatus(notice, true);
+      return;
+    }
     if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
       setStatus("That file isn't a PDF. Please upload a .pdf file.", true);
       return;
@@ -88,15 +143,12 @@
 
     busy = true;
     refreshControls();
-    setStatus("");
+    startUploadStatus(file.name);
     Loader.show({ kind: "upload" });
+    wakeBackend(); // runs in the background and never holds up the upload
     try {
-      if (!(await wakeBackend())) {
-        throw new Error("The server didn't wake up. Please try again in a minute.");
-      }
-      const data = new FormData();
-      data.append("file", file);
-      const result = await apiRequest("/upload", { method: "POST", body: data }, UPLOAD_TIMEOUT_MS);
+      const result = await sendPdf(file);
+      stopUploadStatus();
       sessionId = result.session_id;
       dropzone.classList.add("ready");
       dropzoneTitle.textContent = file.name;
@@ -108,6 +160,7 @@
       }
       question.focus();
     } catch (error) {
+      stopUploadStatus();
       // Naming the file makes it clear the upload happened but was refused.
       setStatus(`${file.name}: ${error.message}`, true);
     } finally {
@@ -153,11 +206,14 @@
   // the browser leave this page to open the PDF. preventDefault stops that.
   const hasFile = (event) => event.dataTransfer.types.includes("Files");
 
-  window.addEventListener("dragover", (event) => {
-    if (!hasFile(event)) return; // leave dragged text alone
-    event.preventDefault();
-    dropzone.classList.add("dragging");
-  });
+  for (const name of ["dragenter", "dragover"]) {
+    window.addEventListener(name, (event) => {
+      if (!hasFile(event)) return; // leave dragged text alone
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "copy";
+      dropzone.classList.add("dragging");
+    });
+  }
   window.addEventListener("dragleave", (event) => {
     // relatedTarget is empty only when the drag leaves the window itself.
     if (!event.relatedTarget) dropzone.classList.remove("dragging");
@@ -166,6 +222,8 @@
     if (!hasFile(event)) return;
     event.preventDefault();
     dropzone.classList.remove("dragging");
+    // A file can land anywhere, so bring its status into view.
+    dropzone.scrollIntoView({ block: "center", behavior: REDUCED_MOTION ? "auto" : "smooth" });
     uploadPdf(event.dataTransfer.files[0]);
   });
 
