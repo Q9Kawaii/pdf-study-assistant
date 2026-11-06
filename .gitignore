@@ -7,3 +7,7 @@
 # Python cache files
 __pycache__/
 *.pyc
+
+# Local tool files that do not belong in the repo
+.claude/
+CLAUDE.md
