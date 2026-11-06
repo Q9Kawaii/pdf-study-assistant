@@ -12,7 +12,6 @@ const ICON_SHAPES = {
   missing: '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9.500 11.500l5 5M14.500 11.500l-5 5"/>',
   folder: '<path d="M3 6h6l2 2h10v11H3z"/>',
   power: '<path d="M12 3v9M6.500 7a8 8 0 1 0 11 0"/>',
-  spark: '<path d="M12 3l1.800 5.200L19 10l-5.200 1.800L12 17l-1.800-5.200L5 10l5.200-1.800zM19 16l.8 2.200L22 19l-2.200.8L19 22l-.8-2.200L16 19l2.200-.8z"/>',
 };
 
 // Add every icon to the page once, so <use href="#i-name"> can draw it anywhere.
