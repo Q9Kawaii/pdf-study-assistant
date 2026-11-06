@@ -7,6 +7,7 @@
   const dropzoneTitle = document.getElementById("dropzone-title");
   const dropzoneHint = document.getElementById("dropzone-hint");
   const uploadStatus = document.getElementById("upload-status");
+  const pageMap = document.getElementById("page-map");
   const chat = document.getElementById("chat");
   const chatEmpty = document.getElementById("chat-empty");
   const form = document.getElementById("ask-form");
@@ -45,10 +46,19 @@
   function addSources(message, sources) {
     const details = document.createElement("details");
     details.className = "sources";
-    details.open = true;
-    const pages = [...new Set(sources.map((source) => source.page))].sort((a, b) => a - b);
     const summary = document.createElement("summary");
-    summary.textContent = `Sources: page${pages.length > 1 ? "s" : ""} ${pages.join(", ")}`;
+    summary.setAttribute("aria-label", "Show the source passages");
+    const chips = el("span", "source-chips");
+    for (const source of sources) {
+      const chip = el("span", "source-chip");
+      const meter = el("span", "meter");
+      const fill = el("i");
+      fill.style.width = `${Math.max(0, source.score) * 100}%`; // real score, 0 to 1
+      meter.append(fill);
+      chip.append(pageChip(source.page), meter);
+      chips.append(chip);
+    }
+    summary.append(chips);
     details.append(summary);
 
     for (const source of sources) {
@@ -79,7 +89,7 @@
     busy = true;
     refreshControls();
     setStatus("");
-    Loader.show();
+    Loader.show({ kind: "upload" });
     try {
       if (!(await wakeBackend())) {
         throw new Error("The server didn't wake up. Please try again in a minute.");
@@ -90,11 +100,8 @@
       sessionId = result.session_id;
       dropzone.classList.add("ready");
       dropzoneTitle.textContent = file.name;
-      dropzoneHint.textContent =
-        `${result.pages} page${result.pages === 1 ? "" : "s"}, ` +
-        `${result.chunks} chunk${result.chunks === 1 ? "" : "s"} indexed` +
-        (result.ocr_pages ? `, ${result.ocr_pages} read with OCR` : "") +
-        ". Tap to replace.";
+      dropzoneHint.textContent = "Tap to replace";
+      drawPageMap(pageMap, result);
       // Some pages failed, but the rest are usable, so we warn and carry on.
       if (result.unread_pages.length) {
         setStatus(`Couldn't read page ${result.unread_pages.join(", ")}. Answers won't include it.`, true);
@@ -113,6 +120,7 @@
 
   function forgetUpload() {
     sessionId = null;
+    pageMap.replaceChildren();
     dropzone.classList.remove("ready");
     dropzoneTitle.textContent = "Drop a PDF here, or tap to choose";
     dropzoneHint.textContent = "Up to 2 MB and 20 pages. Scanned PDFs work too.";
