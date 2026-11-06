@@ -82,6 +82,17 @@ main { padding: 0 clamp(16px, 4vw, 48px); }
 .status { margin-top: 10px; font-size: .95rem; }
 .status:empty { display: none; }
 .status.error, .message.error { color: var(--danger); }
+.status.working {
+  position: relative; overflow: hidden; padding: 10px 12px 12px; font-weight: 700;
+  background: rgba(82, 232, 212, .1);
+  border: 1px solid var(--cyan); border-radius: 10px; overflow-wrap: anywhere;
+}
+/* A moving stripe shows that work is happening. It isn't a percentage. */
+.status.working::after {
+  content: ""; position: absolute; left: 0; bottom: 0; width: 35%; height: 3px;
+  background: var(--cyan); animation: status-slide 1.4s ease-in-out infinite alternate;
+}
+@keyframes status-slide { to { left: 65%; } }
 .status.error {
   padding: 10px 12px; font-weight: 700; overflow-wrap: anywhere;
   background: rgba(255, 157, 157, .1);
