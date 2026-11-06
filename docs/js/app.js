@@ -95,7 +95,8 @@
         `${result.chunks} chunk${result.chunks === 1 ? "" : "s"} indexed. Tap to replace.`;
       question.focus();
     } catch (error) {
-      setStatus(error.message, true);
+      // Naming the file makes it clear the upload happened but was refused.
+      setStatus(`${file.name}: ${error.message}`, true);
     } finally {
       busy = false;
       Loader.hide();
@@ -134,15 +135,21 @@
 
   fileInput.addEventListener("change", () => uploadPdf(fileInput.files[0]));
 
-  // preventDefault stops the browser from opening the dropped file.
-  for (const name of ["dragenter", "dragover"]) {
-    dropzone.addEventListener(name, (event) => {
-      event.preventDefault();
-      dropzone.classList.add("dragging");
-    });
-  }
-  dropzone.addEventListener("dragleave", () => dropzone.classList.remove("dragging"));
-  dropzone.addEventListener("drop", (event) => {
+  // Accept a file dropped anywhere on the page. Otherwise, missing the box makes
+  // the browser leave this page to open the PDF. preventDefault stops that.
+  const hasFile = (event) => event.dataTransfer.types.includes("Files");
+
+  window.addEventListener("dragover", (event) => {
+    if (!hasFile(event)) return; // leave dragged text alone
+    event.preventDefault();
+    dropzone.classList.add("dragging");
+  });
+  window.addEventListener("dragleave", (event) => {
+    // relatedTarget is empty only when the drag leaves the window itself.
+    if (!event.relatedTarget) dropzone.classList.remove("dragging");
+  });
+  window.addEventListener("drop", (event) => {
+    if (!hasFile(event)) return;
     event.preventDefault();
     dropzone.classList.remove("dragging");
     uploadPdf(event.dataTransfer.files[0]);
