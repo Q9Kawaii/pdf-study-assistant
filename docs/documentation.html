@@ -156,7 +156,7 @@
         <ol>
           <li><strong>Extract:</strong> pypdf pulls the text out of each page.</li>
           <li><strong>Chunk:</strong> the text is cut into small overlapping chunks, and each keeps its page number.</li>
-          <li><strong>Embed:</strong> Gemini turns the chunks into vectors. We send up to 100 chunks per call to save quota.</li>
+          <li><strong>Embed:</strong> Gemini turns the chunks into vectors. We send them in batches, so it takes a few network trips instead of one per chunk.</li>
           <li><strong>Store:</strong> the chunks and vectors stay in the server's memory, under a random session ID.</li>
         </ol>
         <h3>When you ask a question</h3>
@@ -201,6 +201,7 @@
           <li><strong>Tables and images are weak spots.</strong> Only plain text is extracted.</li>
           <li><strong>The index lives in memory.</strong> When the server restarts, uploads are gone and you upload again. This keeps the app simple.</li>
           <li><strong>The server sleeps.</strong> Free hosting can sleep when idle, so the first visit may be slow.</li>
+          <li><strong>Long PDFs upload slowly.</strong> The free plan allows 100 embeddings a minute, and each chunk counts as one. A long PDF may need to wait about a minute. Batching saves network trips, but it doesn't save this quota.</li>
           <li><strong>The free AI quota is small.</strong> That's why there are limits: 2 MB and 20 pages per PDF, 500 characters per question, 5 questions a minute and 20 a day for each person, plus a daily cap for the whole app.</li>
           <li><strong>A model can still make mistakes.</strong> Always check the sources for anything important.</li>
         </ul>
@@ -229,7 +230,7 @@
           </table>
         </div>
         <p><strong>Why no LangChain?</strong> It hides the steps. This project's goal is to see every step.</p>
-        <p><strong>Why no vector database?</strong> One PDF gives at most 200 chunks. numpy compares them almost instantly. A database would add setup but no real benefit at this size.</p>
+        <p><strong>Why no vector database?</strong> One PDF gives at most 180 chunks. numpy compares them almost instantly. A database would add setup but no real benefit at this size.</p>
         <div class="example">
           <strong>Real-world example</strong>
           <p>You don't rent a truck to carry one bag of groceries. A vector database is the truck. numpy is your hands, and for one bag your hands are perfect.</p>
