@@ -44,7 +44,8 @@ ASK_RATE_LIMIT = "5/minute;20/day"
 UPLOAD_RATE_LIMIT = "5/minute;20/day"
 GRADE_RATE_LIMIT = "10/minute"
 # Gemini requests per day, across all users. Each embedded text counts as one.
-DAILY_GEMINI_REQUEST_CAP = 1000
+# Gemini's free embedding limit is 1000 a day, so we stop a little before it.
+DAILY_GEMINI_REQUEST_CAP = 900
 
 # Only these websites may call the API from a browser.
 ALLOWED_ORIGINS = ["https://q9kawaii.github.io"]
