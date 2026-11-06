@@ -82,6 +82,12 @@ main { padding: 0 clamp(16px, 4vw, 48px); }
 .status { margin-top: 10px; font-size: .95rem; }
 .status:empty { display: none; }
 .status.error, .message.error { color: var(--danger); }
+.status.error {
+  padding: 10px 12px; font-weight: 700; overflow-wrap: anywhere;
+  background: rgba(255, 157, 157, .1);
+  border: 1px solid var(--danger); border-radius: 10px;
+  animation: message-in .3s ease backwards;
+}
 
 /* Chat */
 .chat {
