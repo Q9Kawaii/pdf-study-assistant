@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Documentation | PDF Study Assistant</title>
+  <meta name="description" content="A beginner's guide to RAG, embeddings, chunking and cosine similarity, with a quiz at the end.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23070a13'/%3E%3Cpath d='M9 24 23 8' stroke='%2352e8d4' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
+  <script>document.documentElement.classList.add("js");</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/docs.css">
+</head>
+<body>
+  <div class="bg-gradient" aria-hidden="true"></div>
+  <canvas id="particles" aria-hidden="true"></canvas>
+
+  <header class="nav">
+    <a class="brand" href="index.html">PDF<span>/</span>Study</a>
+    <nav aria-label="Main">
+      <a href="index.html#assistant">Try it</a>
+      <a href="#quiz">Quiz</a>
+    </nav>
+  </header>
+
+  <div class="docs">
+    <aside class="toc" aria-label="On this page">
+      <p class="toc-title">On this page</p>
+      <ol>
+        <li><a href="#project">What this project is</a></li>
+        <li><a href="#llm">What an LLM is</a></li>
+        <li><a href="#rag">What RAG is</a></li>
+        <li><a href="#embeddings">Embeddings and vectors</a></li>
+        <li><a href="#chunking">Chunking</a></li>
+        <li><a href="#cosine">Cosine similarity</a></li>
+        <li><a href="#steps">How it works, step by step</a></li>
+        <li><a href="#paste">Why not paste the whole PDF?</a></li>
+        <li><a href="#limits">Limits and trade-offs</a></li>
+        <li><a href="#stack">Tech stack</a></li>
+        <li><a href="#quiz">Quiz</a></li>
+      </ol>
+    </aside>
+
+    <main class="prose">
+      <header class="docs-hero">
+        <p class="eyebrow">The beginner's guide</p>
+        <h1 data-words>How this app reads your PDF</h1>
+        <p class="lead">No hard words without an explanation. Read it from top to bottom, then test yourself with the quiz.</p>
+      </header>
+
+      <section id="project" class="reveal">
+        <h2>What this project is</h2>
+        <p>PDF Study Assistant lets you upload a PDF and ask questions about it.</p>
+        <p>The answers come only from your PDF. Each answer shows where it came from, with page numbers.</p>
+        <p>If the answer isn't in the PDF, the app says "Not found in your document". It doesn't guess.</p>
+        <p>The app also has a RAG X-ray panel. It shows what happened behind the scenes for your question, using real data.</p>
+        <div class="example">
+          <strong>Real-world example</strong>
+          <p>Think of a friend who has read your textbook. You ask a question. Your friend opens the book, points to the page, and reads you the answer. If the book doesn't cover it, your friend says so.</p>
+        </div>
+      </section>
+
+      <section id="llm" class="reveal">
+        <h2>What an LLM is</h2>
+        <p>LLM means Large Language Model. Gemini and ChatGPT are examples.</p>
+        <p>An LLM learned from a huge amount of text. Its main skill is simple: it predicts which words should come next.</p>
+        <p>It's so good at this that it can explain, summarise and answer questions.</p>
+        <p>But an LLM has two big problems:</p>
+        <ul>
+          <li><strong>It has never seen your notes.</strong> It only knows what it was trained on.</li>
+          <li><strong>It can sound sure and still be wrong.</strong> Making up a believable answer is called a hallucination.</li>
+        </ul>
+        <div class="example">
+          <strong>Real-world example</strong>
+          <p>Picture a student who has read thousands of books, but has never been to your class. Ask about your teacher's notes and they might give a confident guess. The answer sounds good, but it isn't based on your notes.</p>
+        </div>
+      </section>
+
+      <section id="rag" class="reveal">
+        <h2>What RAG is and why it exists</h2>
+        <p>RAG means Retrieval-Augmented Generation. The name has three parts:</p>
+        <ul>
+          <li><strong>Retrieval:</strong> find the useful parts of your document.</li>
+          <li><strong>Augmented:</strong> add those parts to the message sent to the LLM.</li>
+          <li><strong>Generation:</strong> the LLM writes an answer from them.</li>
+        </ul>
+        <p>RAG exists to fix the two LLM problems. The LLM gets to see your text, and it's told to use nothing else.</p>
+        <p>This lowers the risk of made-up answers a lot. It can't remove the risk fully, which is why we also show the sources, so you can check.</p>
+        <div class="example">
+          <strong>Real-world example</strong>
+          <p>A closed-book exam tests what you remember, so you may guess. An open-book exam lets you look things up first. RAG turns the LLM's closed-book exam into an open-book exam.</p>
+        </div>
+      </section>
+
+      <section id="embeddings" class="reveal">
+        <h2>Embeddings and vectors</h2>
+        <p>Computers are great with numbers, but they don't understand meaning in words. So we turn text into numbers.</p>
+        <p>A <strong>vector</strong> is just a list of numbers, like <code>[0.02, -0.11, 0.07, ...]</code>.</p>
+        <p>An <strong>embedding</strong> is a vector that captures the meaning of some text. An embedding model makes it. In this app, each one has 768 numbers.</p>
+        <p>The clever part: texts with similar meaning get similar vectors, even if they use different words.</p>
+        <p>So "How do cells make energy?" can find a passage about "ATP production", with no shared words.</p>
+        <div class="example">
+          <strong>Real-world example</strong>
+          <p>Think of a map. Each city has coordinates, and nearby cities have similar numbers. Embeddings are like a map of meaning. "Dog" and "puppy" sit close together, and "dog" and "invoice" sit far apart. This map just has 768 directions instead of 2.</p>
+        </div>
+      </section>
+
+      <section id="chunking" class="reveal">
+        <h2>Chunking</h2>
+        <p>Chunking means cutting a document into small pieces. Each piece is a chunk.</p>
+        <p>We do it because one vector for a whole PDF would be too blurry. It would mix every topic together. Small chunks let the search find the exact passage.</p>
+        <p>This app uses chunks of about 500 characters, and neighbouring chunks share 100 characters. That shared part is the <strong>overlap</strong>.</p>
+        <div class="overlap-demo" aria-label="Diagram: two chunks that share an overlapping middle part">
+          <span class="seg one">Chunk 1</span><span class="seg both">Overlap</span><span class="seg two">Chunk 2</span>
+        </div>
+        <p>Why overlap? A cut can land in the middle of an idea. With overlap, the end of one chunk repeats at the start of the next, so the idea is more likely to survive in one piece.</p>
+        <p>The size is a trade-off. Too small, and a chunk loses its context. Too big, and it mixes topics and the search gets less exact.</p>
+        <p>Each chunk also remembers its page number. That's how we can show citations later.</p>
+        <div class="example">
+          <strong>Real-world example</strong>
+          <p>When you look for a recipe, you don't want the whole cookbook. You want one recipe. Chunks are like recipe cards: small enough to find fast, and complete enough to be useful.</p>
+        </div>
+      </section>
+
+      <section id="cosine" class="reveal">
+        <h2>Cosine similarity</h2>
+        <p>Now the question and every chunk are vectors. We need a way to measure how close they are. That's cosine similarity.</p>
+        <p>Picture each vector as an arrow. Cosine similarity checks the angle between two arrows. It ignores how long they are.</p>
+        <svg class="angles" viewBox="0 0 460 120" role="img" aria-label="Three pairs of arrows: a small angle means similar, a right angle means unrelated, opposite arrows mean opposite.">
+          <g stroke-width="3" stroke-linecap="round" fill="none">
+            <path class="arrow-a" d="M30 90 L130 90"/><path class="arrow-b" d="M30 90 L120 55"/>
+            <path class="arrow-a" d="M190 90 L280 90"/><path class="arrow-b" d="M190 90 L190 20"/>
+            <path class="arrow-a" d="M385 90 L450 90"/><path class="arrow-b" d="M385 90 L320 90"/>
+          </g>
+          <g class="angle-text" text-anchor="middle">
+            <text x="80" y="114">near 1: similar</text>
+            <text x="235" y="114">0: unrelated</text>
+            <text x="385" y="114">-1: opposite</text>
+          </g>
+        </svg>
+        <p>The formula is: multiply the two vectors together (the dot product), then divide by their lengths.</p>
+        <pre><code>cosine = (a . b) / (|a| * |b|)</code></pre>
+        <p>Why ignore length? So a long chunk doesn't win just for being long. We only care about the direction, which stands for meaning.</p>
+        <p>In real use, scores don't spread from 0 to 1. With our embedding model, even an unrelated question can score about 0.5, and a good match may score 0.7. What matters is which chunk ranks highest, not the exact number.</p>
+        <div class="example">
+          <strong>Real-world example</strong>
+          <p>Two friends point at something across a room. If their arms point the same way, they mean the same thing. One friend may have longer arms, but that doesn't matter. Only the direction does.</p>
+        </div>
+      </section>
+
+      <section id="steps" class="reveal">
+        <h2>How this project works, step by step</h2>
+        <h3>When you upload a PDF</h3>
+        <ol>
+          <li><strong>Extract:</strong> pypdf pulls the text out of each page.</li>
+          <li><strong>Chunk:</strong> the text is cut into small overlapping chunks, and each keeps its page number.</li>
+          <li><strong>Embed:</strong> Gemini turns the chunks into vectors. We send up to 100 chunks per call to save quota.</li>
+          <li><strong>Store:</strong> the chunks and vectors stay in the server's memory, under a random session ID.</li>
+        </ol>
+        <h3>When you ask a question</h3>
+        <ol start="5">
+          <li><strong>Embed the question:</strong> your question becomes a vector too.</li>
+          <li><strong>Compare:</strong> numpy scores every chunk with cosine similarity.</li>
+          <li><strong>Pick:</strong> the top 3 chunks are kept.</li>
+          <li><strong>Answer:</strong> only those 3 chunks and your question go to Gemini. It's told to answer only from them, or else to say "Not found in your document".</li>
+          <li><strong>Show:</strong> you get the answer, the sources, and the data for the X-ray panel.</li>
+        </ol>
+        <p>One more safety rule: text from a PDF is treated as data, never as instructions. A PDF could contain a line like "ignore your rules". This trick is called <strong>prompt injection</strong>. Our instructions warn Gemini about it, and the chunks are sent as JSON data to keep them apart from our rules.</p>
+        <div class="example">
+          <strong>Real-world example</strong>
+          <p>A librarian first builds a catalogue (upload). When you ask something, they check the catalogue, bring you the 3 best books, and you read your answer from those (question).</p>
+        </div>
+      </section>
+
+      <section id="paste" class="reveal">
+        <h2>Why not just paste the whole PDF?</h2>
+        <p>Good question! Modern LLMs can read a lot of text at once. A 20-page PDF would fit. So why bother with RAG?</p>
+        <ul>
+          <li><strong>Cost and quota:</strong> sending the whole PDF with every question uses far more tokens. Sending 3 small chunks is tiny.</li>
+          <li><strong>Speed:</strong> less text means a faster answer.</li>
+          <li><strong>Focus:</strong> with lots of unrelated text, a model can miss the detail that matters.</li>
+          <li><strong>Citations:</strong> we know exactly which passages were used, so we can show them.</li>
+          <li><strong>Scale:</strong> this idea still works for thousands of pages. Pasting doesn't.</li>
+        </ul>
+        <p>To be fair, for one short PDF, pasting would also work. RAG shines more as documents grow. Here, it's also the best way to learn how the search works.</p>
+        <div class="example">
+          <strong>Real-world example</strong>
+          <p>A student needs one fact from a textbook. They could reread all 500 pages each time. Or they could use the index, jump to the right page, and read one paragraph. RAG is the index.</p>
+        </div>
+      </section>
+
+      <section id="limits" class="reveal">
+        <h2>Limits and trade-offs</h2>
+        <p>No system is perfect. Here is what this one can't do, and why.</p>
+        <ul>
+          <li><strong>Only the top 3 chunks are read.</strong> If the answer is spread across many pages, parts can be missed. So "summarise the whole PDF" works badly.</li>
+          <li><strong>The search can miss.</strong> If the right chunk isn't in the top 3, you may get "Not found" even though the answer exists.</li>
+          <li><strong>Scanned PDFs don't work.</strong> They are pictures of text, and we don't do OCR (reading text from images).</li>
+          <li><strong>Tables and images are weak spots.</strong> Only plain text is extracted.</li>
+          <li><strong>The index lives in memory.</strong> When the server restarts, uploads are gone and you upload again. This keeps the app simple.</li>
+          <li><strong>The server sleeps.</strong> Free hosting can sleep when idle, so the first visit may be slow.</li>
+          <li><strong>The free AI quota is small.</strong> That's why there are limits: 2 MB and 20 pages per PDF, 500 characters per question, 5 questions a minute and 20 a day for each person, plus a daily cap for the whole app.</li>
+          <li><strong>A model can still make mistakes.</strong> Always check the sources for anything important.</li>
+        </ul>
+        <div class="example">
+          <strong>Real-world example</strong>
+          <p>A small library opens only a few hours, and each visitor can borrow a few books. It isn't ideal, but it keeps the library running for everyone. Our limits do the same job for the free quota.</p>
+        </div>
+      </section>
+
+      <section id="stack" class="reveal">
+        <h2>Tech stack and why each choice</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Tool</th><th>What it does</th><th>Why this one</th></tr></thead>
+            <tbody>
+              <tr><td>Python + FastAPI</td><td>Runs the API</td><td>Simple to read, and it checks incoming data for us.</td></tr>
+              <tr><td>pypdf</td><td>Reads PDF text</td><td>Small and pure Python, so it's easy to deploy.</td></tr>
+              <tr><td>Gemini chat model</td><td>Writes answers and grades the quiz</td><td>It has a free tier and it's fast.</td></tr>
+              <tr><td>gemini-embedding-001</td><td>Makes the vectors</td><td>Good quality, and it accepts batches.</td></tr>
+              <tr><td>numpy</td><td>Does the vector math</td><td>A few lines do the whole search. I can explain each one.</td></tr>
+              <tr><td>slowapi</td><td>Rate limits per IP</td><td>It protects the free quota with one line per endpoint.</td></tr>
+              <tr><td>Plain HTML, CSS, JS</td><td>The website</td><td>No build step, so anyone can read the code.</td></tr>
+              <tr><td>GitHub Pages</td><td>Hosts the website</td><td>Free and simple.</td></tr>
+              <tr><td>Render</td><td>Hosts the backend</td><td>It has a free plan that runs Python.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p><strong>Why no LangChain?</strong> It hides the steps. This project's goal is to see every step.</p>
+        <p><strong>Why no vector database?</strong> One PDF gives at most 200 chunks. numpy compares them almost instantly. A database would add setup but no real benefit at this size.</p>
+        <div class="example">
+          <strong>Real-world example</strong>
+          <p>You don't rent a truck to carry one bag of groceries. A vector database is the truck. numpy is your hands, and for one bag your hands are perfect.</p>
+        </div>
+      </section>
+
+      <section id="quiz" class="quiz-section">
+        <h2>Quiz</h2>
+        <p>Multiple choice questions are marked right away. Written answers are graded by AI, out of 10. Each question is worth 10 points.</p>
+        <p class="quiz-progress" id="quiz-progress" role="status"></p>
+        <div class="quiz-bar" aria-hidden="true"><span id="quiz-bar-fill"></span></div>
+        <div id="quiz-questions"></div>
+        <div class="quiz-result" id="quiz-result" role="status" hidden>
+          <p class="quiz-result-label">Your final score</p>
+          <p class="quiz-score" id="quiz-score"></p>
+          <p id="quiz-message"></p>
+          <button class="button primary" id="quiz-retake" type="button">Take it again</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p>PDF Study Assistant. RAG from scratch with Python and numpy.</p>
+    <a href="index.html">Back to the app</a>
+  </footer>
+
+  <script src="js/config.js"></script>
+  <script src="js/background.js"></script>
+  <script src="js/motion.js"></script>
+  <script src="js/loader.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/quiz.js"></script>
+</body>
+</html>
