@@ -1,64 +1,69 @@
-// The loading card: "Spinning up the RAG pipeline..." with a sample question
-// flowing through each stage. It's labelled as a sample because it isn't real
-// data. The real data appears in the X-ray panel once the answer arrives.
+// The loading card: "Spinning up the RAG pipeline..." above a looping diagram of
+// the pipeline. The loop only shows that work is happening. It isn't a progress
+// bar, and the question in it is labelled as a sample because it isn't real data.
 const Loader = (function () {
-  const SAMPLE_STAGES = [
-    "What do mitochondria do?",
-    "[0.021, -0.113, 0.067, 0.094, ...]",
-    "chunk 4: 0.82   chunk 9: 0.71   chunk 2: 0.33",
-    "chunk 4 (page 2), chunk 9 (page 5), chunk 1 (page 1)",
-    "They make most of the cell's energy.",
-  ];
-  const STAGE_MS = 1100;
+  const PIPELINES = {
+    ask: [["ask", "Ask"], ["vector", "Vector"], ["compare", "Compare"], ["top", "Top 3"], ["answer", "Answer"]],
+    upload: [["pdf", "Read"], ["chunk", "Chunk"], ["vector", "Embed"], ["ready", "Index"]],
+  };
 
-  const card = document.createElement("div");
-  card.className = "loader";
+  const card = el("div", "loader");
   card.setAttribute("role", "status");
-  card.innerHTML = `
-    <p class="loader-title">Spinning up the RAG pipeline...</p>
-    <p class="loader-note" hidden>The free server sleeps when nobody is using it. Waking up can take up to a minute.</p>
-    <div class="loader-sample">
-      Sample question
-      <span class="loader-stage"></span>
-      <ol class="flow" aria-hidden="true">
-        <li>Question</li><li>Vector</li><li>Scores</li><li>Top 3</li><li>Answer</li>
-      </ol>
-    </div>`;
-  document.body.append(card);
 
-  const note = card.querySelector(".loader-note");
-  const stageText = card.querySelector(".loader-stage");
-  const stageLabels = card.querySelectorAll(".flow li");
-  let activeJobs = 0; // several tasks can overlap, so we count them
-  let timer = null;
+  const wake = el("p", "loader-wake");
+  wake.append(icon("power"), "Waking the server, up to 1 minute");
+  wake.hidden = true;
 
-  function showStage(index) {
-    stageText.textContent = SAMPLE_STAGES[index];
-    stageLabels.forEach((label, position) => {
-      label.classList.toggle("active", position === index);
-    });
+  const sample = el("p", "loader-sample");
+  sample.append(icon("ask"), "What do mitochondria do?", el("span", "sample-tag", "SAMPLE"));
+
+  const scan = el("div", "doc-scan");
+  scan.setAttribute("aria-hidden", "true");
+  scan.append(icon("pdf", "icon doc-scan-page"), el("span", "doc-scan-beam"));
+  for (let index = 0; index < 8; index++) {
+    const piece = el("span", "doc-scan-chunk");
+    piece.style.setProperty("--i", index);
+    scan.append(piece);
   }
 
-  function show({ cold = false } = {}) {
+  const pipe = el("div", "pipe");
+  pipe.setAttribute("aria-hidden", "true");
+
+  card.append(el("p", "loader-title", "Spinning up the RAG pipeline..."), wake, sample, scan, pipe);
+  document.body.append(card);
+
+  let activeJobs = 0; // several tasks can overlap, so we count them
+
+  function drawPipeline(kind) {
+    const stages = PIPELINES[kind];
+    pipe.style.setProperty("--n", stages.length);
+    const list = el("ol");
+    stages.forEach(([name, label], index) => {
+      const stage = el("li");
+      stage.style.setProperty("--i", index);
+      const node = el("span", "pipe-node");
+      node.append(icon(name));
+      stage.append(node, label);
+      list.append(stage);
+    });
+    pipe.replaceChildren(list, el("span", "pipe-packet"));
+    sample.hidden = kind !== "ask";
+    scan.hidden = kind !== "upload";
+  }
+
+  function show({ cold = false, kind = "ask" } = {}) {
     activeJobs += 1;
-    if (cold) note.hidden = false;
-    if (timer !== null) return;
+    if (cold) wake.hidden = false;
+    if (activeJobs > 1 && card.classList.contains("visible")) return;
+    drawPipeline(kind);
     card.classList.add("visible");
-    let stage = 0;
-    showStage(stage);
-    timer = setInterval(() => {
-      stage = (stage + 1) % SAMPLE_STAGES.length;
-      showStage(stage);
-    }, STAGE_MS);
   }
 
   function hide() {
     activeJobs = Math.max(0, activeJobs - 1);
     if (activeJobs > 0) return;
     card.classList.remove("visible");
-    clearInterval(timer);
-    timer = null;
-    note.hidden = true;
+    wake.hidden = true;
   }
 
   return { show, hide };

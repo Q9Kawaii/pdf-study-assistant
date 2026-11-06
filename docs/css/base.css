@@ -120,6 +120,7 @@ a { color: var(--cyan); }
   font: 600 .8125rem var(--mono);
 }
 .flow li {
+  display: inline-flex; align-items: center; gap: 6px;
   padding: 7px 12px; border: 1px solid var(--line); border-radius: 8px;
   background: var(--panel); color: var(--muted);
   animation: flow-pulse 5s infinite;
@@ -150,18 +151,73 @@ a { color: var(--cyan); }
 }
 .loader.visible { opacity: 1; transform: none; pointer-events: auto; }
 .loader-title { font-weight: 700; }
-.loader-note { margin-top: 4px; color: var(--muted); font-size: .875rem; line-height: 1.4; }
+.loader-wake {
+  display: flex; align-items: center; gap: 6px; margin-top: 6px;
+  color: var(--amber); font-size: .875rem; font-weight: 700;
+}
 .loader-sample {
-  margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line);
-  color: var(--muted); font-size: .8125rem;
+  display: flex; align-items: center; gap: 8px; margin-top: 10px; padding: 7px 10px;
+  background: var(--ink); border-radius: 10px; color: var(--text); font-size: .875rem;
 }
-.loader-stage {
-  display: block; min-height: 2.8em; margin-top: 4px;
-  color: var(--cyan); font: 400 .8125rem/1.4 var(--mono);
+.sample-tag { margin-left: auto; color: var(--amber); font: 600 .6875rem var(--mono); }
+
+/* A page with a beam passing over it, and chunks popping out. */
+.doc-scan {
+  position: relative; display: flex; align-items: center; gap: 4px; height: 52px;
+  margin-top: 10px; padding-left: 52px; overflow: hidden;
 }
-.loader .flow { margin-top: 10px; font-size: .6875rem; gap: 4px; }
-.loader .flow li { padding: 3px 6px; animation: none; }
-.loader .flow li.active { border-color: var(--cyan); color: var(--cyan); }
+.doc-scan-page { position: absolute; left: 0; top: 2px; width: 44px; height: 48px; color: var(--text); }
+.doc-scan-beam {
+  position: absolute; left: 0; width: 44px; height: 3px; background: var(--cyan);
+  box-shadow: 0 0 10px 2px var(--cyan); animation: beam 1.6s ease-in-out infinite alternate;
+}
+@keyframes beam { from { top: 4px; } to { top: 46px; } }
+.doc-scan-chunk {
+  flex: 1; height: 16px; border-radius: 3px; background: var(--violet);
+  animation: chunk-pop 2.4s ease-in-out infinite; animation-delay: calc(var(--i) * .15s);
+}
+@keyframes chunk-pop {
+  0%, 100% { opacity: .15; transform: scale(.6); }
+  40%, 60% { opacity: 1; transform: none; }
+}
+
+/* The pipeline diagram. --n is the number of stages and --i is each stage. */
+.pipe { position: relative; margin-top: 12px; }
+.pipe ol {
+  display: grid; grid-template-columns: repeat(var(--n), 1fr);
+  margin: 0; padding: 0; list-style: none;
+}
+.pipe::before {
+  content: ""; position: absolute; top: 16px; height: 2px; background: var(--line);
+  left: calc(50% / var(--n)); right: calc(50% / var(--n));
+}
+.pipe li {
+  position: relative; display: grid; justify-items: center; gap: 3px;
+  color: var(--text); font-size: .75rem;
+}
+.pipe-node {
+  display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%;
+  background: var(--panel); border: 2px solid var(--line); color: var(--muted);
+  animation: pipe-lit calc(var(--n) * 1s) infinite;
+  animation-delay: calc(var(--i) * 1s);
+}
+@keyframes pipe-lit {
+  0%, 30%, 100% { background: var(--panel); border-color: var(--line); color: var(--muted); box-shadow: none; }
+  6%, 22% {
+    background: var(--cyan); border-color: var(--cyan); color: #04211d;
+    box-shadow: 0 0 16px rgba(82, 232, 212, .6);
+  }
+}
+.pipe-packet {
+  position: absolute; top: 11px; left: calc(50% / var(--n));
+  width: 12px; height: 12px; margin-left: -6px;
+  border-radius: 50%; background: #fff; box-shadow: 0 0 12px 3px var(--cyan);
+  animation: pipe-move calc(var(--n) * 1s) linear infinite;
+}
+@keyframes pipe-move {
+  from { left: calc(50% / var(--n)); }
+  to { left: calc(100% - 50% / var(--n)); }
+}
 
 /* Scroll reveals. Only hidden if JavaScript is on, so nothing can get stuck. */
 .js .reveal {
@@ -190,4 +246,5 @@ a { color: var(--cyan); }
     transition-duration: .01ms !important;
   }
   .js .reveal { opacity: 1; transform: none; }
+  .pipe-packet { display: none; }
 }
